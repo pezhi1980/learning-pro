@@ -1,0 +1,19 @@
+# GitHub Actions — CI/CD for Render Backend
+# This workflow triggers deployment to Render on every push to main
+
+name: Deploy Backend to Render
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST \
+            "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}"

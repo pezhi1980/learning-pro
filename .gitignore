@@ -1,0 +1,87 @@
+# ============================================================
+# .gitignore — Learning Lang Pro Monorepo
+# ============================================================
+
+# ── Environment & Secrets ──────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+secrets/
+**/secrets/
+
+# ── Flutter / Dart ─────────────────────────────────────────
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/build/
+app/.pub-cache/
+app/.pub/
+app/pubspec.lock
+app/android/.gradle/
+app/android/captures/
+app/android/gradlew
+app/android/gradlew.bat
+app/android/local.properties
+app/android/GeneratedPluginRegistrant.java
+app/android/key.properties
+app/**/*.keystore
+app/**/*.jks
+app/ios/.symlinks/
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/Flutter/Generated.xcconfig
+app/ios/Pods/
+app/ios/Runner.xcworkspace/xcuserdata/
+app/ios/Runner/GeneratedPluginRegistrant.h
+app/ios/Runner/GeneratedPluginRegistrant.m
+app/macos/Flutter/GeneratedPluginRegistrant.swift
+app/macos/Flutter/ephemeral/
+app/linux/flutter/ephemeral/
+app/windows/flutter/ephemeral/
+app/web/
+
+# ── Python / FastAPI Backend ───────────────────────────────
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/**/*.py[cod]
+backend/*.pyo
+backend/.venv/
+backend/venv/
+backend/env/
+backend/.pytest_cache/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# ── PDF Source Files (large, store in Supabase Storage) ────
+# PDF source files — kept locally only, not in git
+*.pdf
+
+# ── IDE ────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+.vscode/.ropeproject
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+*.pid
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
