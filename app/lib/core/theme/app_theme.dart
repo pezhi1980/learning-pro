@@ -51,7 +51,7 @@ class AppTheme {
 
   // ── Typography ─────────────────────────────────────────────
   static TextTheme _buildTextTheme(Color textColor, bool isRtl) {
-    final fontFamily = isRtl ? 'Vazirmatn' : 'Outfit';
+    final fontFamily = isRtl ? 'Vazirmatn' : GoogleFonts.outfit().fontFamily!;
     return TextTheme(
       // Display
       displayLarge: TextStyle(fontFamily: fontFamily, fontSize: 57, fontWeight: FontWeight.w700, color: textColor, letterSpacing: -0.25),
