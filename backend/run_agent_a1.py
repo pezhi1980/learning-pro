@@ -13,8 +13,8 @@ if sys.stdout.encoding != 'utf-8':
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 import os
-if not os.getenv("OPENAI_API_KEY"):
-    pass
+from dotenv import load_dotenv
+load_dotenv()
 
 from agents.content_agent import ContentPedagogyAgent
 
