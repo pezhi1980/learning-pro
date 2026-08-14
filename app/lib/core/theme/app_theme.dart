@@ -8,6 +8,8 @@ class AppTheme {
 
   // ── Color Palette ──────────────────────────────────────────
   static const Color primaryPurple   = Color(0xFF7C3AED); // Violet-600
+  static const Color primaryColor    = primaryPurple;
+
   static const Color primaryTeal     = Color(0xFF0D9488); // Teal-600
   static const Color accentAmber     = Color(0xFFF59E0B); // Amber-500
   static const Color accentRose      = Color(0xFFF43F5E); // Rose-500
@@ -119,7 +121,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryPurple,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(0, 56),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: TextStyle(
             fontFamily: isRtl ? 'Vazirmatn' : 'Outfit',
@@ -132,7 +134,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryPurple,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(0, 56),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           side: const BorderSide(color: primaryPurple, width: 1.5),
           textStyle: TextStyle(
@@ -217,7 +219,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryPurple,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(0, 56),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: TextStyle(
             fontFamily: isRtl ? 'Vazirmatn' : 'Outfit',

@@ -96,8 +96,6 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final showContrast = AppConstants.grammarContrastLevels.contains(widget.levelId);
-
     return Scaffold(
       backgroundColor: AppTheme.darkBg,
       body: Container(
@@ -106,9 +104,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           child: Column(
             children: [
               _buildHeader(context),
-              if (!_isLoading && _content != null)
-                _buildTabBar(showContrast),
-              Expanded(child: _buildBody(showContrast)),
+              Expanded(child: _buildBody()),
             ],
           ),
         ),
@@ -128,7 +124,13 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppTheme.darkTextSub, size: 20),
-            onPressed: () => context.pop(),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/grammar/${widget.languageId}/${widget.levelId}');
+              }
+            },
           ),
           Expanded(
             child: Column(
@@ -205,47 +207,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
     );
   }
 
-  Widget _buildTabBar(bool showContrast) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: AppTheme.darkCard,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.darkCardBorder),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: _levelColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _levelColor.withOpacity(0.5)),
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
-          dividerColor: Colors.transparent,
-          labelStyle: const TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-          ),
-          labelColor: _levelColor,
-          unselectedLabelColor: AppTheme.darkTextSub,
-          tabs: [
-            const Tab(text: 'Explanation'),
-            Tab(text: showContrast ? 'Comparison' : 'Examples'),
-          ],
-        ),
-      ).animate().fadeIn(delay: 100.ms),
-    );
-  }
-
-  Widget _buildBody(bool showContrast) {
+  Widget _buildBody() {
     if (_isLoading) {
       return Padding(
         padding: const EdgeInsets.all(20),
@@ -263,18 +225,15 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
     if (_error != null) return _buildError();
     if (_content == null) return _buildNoContent();
 
-    return TabBarView(
-      controller: _tabController,
-      children: [
-        _buildExplanationTab(),
-        showContrast ? _buildContrastTab() : _buildExamplesSection(),
-      ],
-    );
+    return _buildExplanationTab();
   }
 
   Widget _buildExplanationTab() {
+    final isRtl = AppConstants.rtlLanguages.contains(_nativeLanguage);
     final explanation = _content?['explanation'] as String? ?? '';
-    final examples = (_content?['examples'] as List?)?.cast<dynamic>() ?? [];
+    final examples = ((_content?['examples_json'] ?? _content?['examples']) as List?)?.cast<dynamic>() ?? [];
+    final tips = ((_content?['tips_json'] ?? _content?['tips']) as List?)?.cast<dynamic>() ?? [];
+    final mistakes = ((_content?['common_mistakes_json'] ?? _content?['common_mistakes']) as List?)?.cast<dynamic>() ?? [];
     final rules = (_content?['rules'] as List?)?.cast<dynamic>() ?? [];
 
     return SingleChildScrollView(
@@ -289,18 +248,27 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
             _SectionHeader(title: 'Explanation', icon: Icons.lightbulb_outline_rounded,
                 color: _levelColor),
             const SizedBox(height: 12),
-            _ContentCard(text: explanation, levelColor: _levelColor),
+            _ContentCard(text: explanation, levelColor: _levelColor, isRtl: isRtl),
             const SizedBox(height: 20),
           ],
 
-          // Rules
-          if (rules.isNotEmpty) ...[
+          // Key Rules / Tips
+          if (tips.isNotEmpty) ...[
+            _SectionHeader(title: 'Key Tips', icon: Icons.tips_and_updates_rounded, color: AppTheme.accentAmber),
+            const SizedBox(height: 12),
+            ...tips.map((t) => _TipCard(
+              text: t is Map ? '${t['tip'] ?? ''}\nExample: ${t['example'] ?? ''}' : t.toString(),
+              isRtl: isRtl,
+            )),
+            const SizedBox(height: 20),
+          ] else if (rules.isNotEmpty) ...[
             _SectionHeader(title: 'Key Rules', icon: Icons.rule_rounded, color: _levelColor),
             const SizedBox(height: 12),
             ...rules.asMap().entries.map((e) => _RuleItem(
               index: e.key + 1,
               text: e.value.toString(),
               color: _levelColor,
+              isRtl: isRtl,
             )),
             const SizedBox(height: 20),
           ],
@@ -313,6 +281,66 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
             ...examples.map((ex) => _ExampleCard(
               example: ex is Map ? ex : {'target': ex.toString()},
               levelColor: _levelColor,
+              isRtl: isRtl,
+            )),
+          ],
+
+          // Common Mistakes
+          if (mistakes.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _SectionHeader(title: 'Common Mistakes', icon: Icons.warning_amber_rounded, color: AppTheme.colorError),
+            const SizedBox(height: 12),
+            ...mistakes.map((m) => Directionality(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.colorError.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.colorError.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.close_rounded, size: 16, color: AppTheme.colorError),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            m is Map ? (m['wrong'] ?? '') : m.toString(),
+                            style: const TextStyle(fontFamily: 'Outfit', color: AppTheme.colorError, decoration: TextDecoration.lineThrough),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (m is Map && (m['right'] != null)) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.check_rounded, size: 16, color: AppTheme.colorSuccess),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              m['right'].toString(),
+                              style: const TextStyle(fontFamily: 'Outfit', color: AppTheme.colorSuccess, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (m is Map && (m['reason'] != null)) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        m['reason'].toString(),
+                        textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                        style: const TextStyle(fontFamily: 'Outfit', fontSize: 12, color: AppTheme.darkTextSub),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             )),
           ],
 
@@ -498,7 +526,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () => context.go(
+              onPressed: () => context.push(
                 '/exercises/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}',
               ),
               icon: const Icon(Icons.fitness_center_rounded, size: 18),
@@ -514,7 +542,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () => context.go(
+              onPressed: () => context.push(
                 '/exercises/mc/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}',
               ),
               icon: const Icon(Icons.quiz_rounded, size: 18),
@@ -620,8 +648,13 @@ class _SectionHeader extends StatelessWidget {
 class _ContentCard extends StatelessWidget {
   final String text;
   final Color levelColor;
+  final bool isRtl;
 
-  const _ContentCard({required this.text, required this.levelColor});
+  const _ContentCard({
+    required this.text,
+    required this.levelColor,
+    this.isRtl = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -633,13 +666,17 @@ class _ContentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: levelColor.withOpacity(0.2)),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'Outfit',
-          fontSize: 14,
-          color: AppTheme.darkText,
-          height: 1.7,
+      child: Directionality(
+        textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+        child: Text(
+          text,
+          textAlign: isRtl ? TextAlign.right : TextAlign.left,
+          style: const TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 14,
+            color: AppTheme.darkText,
+            height: 1.8,
+          ),
         ),
       ),
     );
@@ -650,49 +687,59 @@ class _RuleItem extends StatelessWidget {
   final int index;
   final String text;
   final Color color;
+  final bool isRtl;
 
-  const _RuleItem({required this.index, required this.text, required this.color});
+  const _RuleItem({
+    required this.index,
+    required this.text,
+    required this.color,
+    this.isRtl = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            margin: const EdgeInsets.only(top: 1),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$index',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+      child: Directionality(
+        textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              margin: const EdgeInsets.only(top: 1),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '$index',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontFamily: 'Outfit',
-                fontSize: 14,
-                color: AppTheme.darkText,
-                height: 1.5,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                style: const TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 14,
+                  color: AppTheme.darkText,
+                  height: 1.5,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -702,18 +749,20 @@ class _ExampleCard extends StatelessWidget {
   final Map<dynamic, dynamic> example;
   final Color levelColor;
   final bool showNative;
+  final bool isRtl;
 
   const _ExampleCard({
     required this.example,
     required this.levelColor,
     this.showNative = false,
+    this.isRtl = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final target = example['target']?.toString() ?? '';
     final native = example['native']?.toString() ?? '';
-    final note = example['note']?.toString() ?? '';
+    final note = (example['note'] ?? example['breakdown'])?.toString() ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -726,73 +775,84 @@ class _ExampleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Target sentence
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 4,
-                height: 20,
-                margin: const EdgeInsets.only(top: 2, right: 10),
-                decoration: BoxDecoration(
-                  color: levelColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  target,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.darkText,
+          // Target sentence (English LTR)
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 4,
+                  height: 20,
+                  margin: const EdgeInsets.only(top: 2, right: 10),
+                  decoration: BoxDecoration(
+                    color: levelColor,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: Text(
+                    target,
+                    style: const TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.darkText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          // Native translation
+          // Native translation (Persian RTL)
           if (native.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.only(left: 14),
-              child: Text(
-                native,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 13,
-                  color: AppTheme.darkTextSub,
-                  fontStyle: FontStyle.italic,
+            Directionality(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 14, right: 14),
+                child: Text(
+                  native,
+                  textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 13,
+                    color: AppTheme.darkTextSub,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
             ),
           ],
-          // Note
+          // Note / Breakdown (Persian RTL)
           if (note.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.accentAmber.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline_rounded,
-                      size: 14, color: AppTheme.accentAmber),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      note,
-                      style: const TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 12,
-                        color: AppTheme.accentAmber,
+            Directionality(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentAmber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 14, color: AppTheme.accentAmber),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        note,
+                        textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 12,
+                          color: AppTheme.accentAmber,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -804,7 +864,9 @@ class _ExampleCard extends StatelessWidget {
 
 class _TipCard extends StatelessWidget {
   final String text;
-  const _TipCard({required this.text});
+  final bool isRtl;
+
+  const _TipCard({required this.text, this.isRtl = true});
 
   @override
   Widget build(BuildContext context) {
@@ -816,24 +878,28 @@ class _TipCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.accentAmber.withOpacity(0.25)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.tips_and_updates_rounded,
-              size: 18, color: AppTheme.accentAmber),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontFamily: 'Outfit',
-                fontSize: 13,
-                color: AppTheme.darkText,
-                height: 1.5,
+      child: Directionality(
+        textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.tips_and_updates_rounded,
+                size: 18, color: AppTheme.accentAmber),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                style: const TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 13,
+                  color: AppTheme.darkText,
+                  height: 1.5,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

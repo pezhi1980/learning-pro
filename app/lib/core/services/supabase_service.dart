@@ -85,9 +85,9 @@ class SupabaseService {
   }) async {
     return await client
         .from('grammar_topics')
-        .select()
-        .eq('language_id', languageId)
-        .eq('level_id', levelId)
+        .select('*, languages!inner(code), levels!inner(code)')
+        .eq('languages.code', languageId)
+        .eq('levels.code', levelId)
         .eq('is_published', true)
         .order('order_index');
   }
@@ -96,13 +96,27 @@ class SupabaseService {
     required String topicId,
     required String nativeLanguage,
   }) async {
-    final result = await client
-        .from('grammar_content')
-        .select()
-        .eq('topic_id', topicId)
-        .eq('native_language', nativeLanguage)
-        .maybeSingle();
-    return result;
+    try {
+      final result = await client
+          .from('grammar_content')
+          .select()
+          .eq('topic_id', topicId)
+          .eq('native_language', nativeLanguage)
+          .maybeSingle();
+
+      if (result != null) return result;
+
+      // Fallback: If native language specific content is missing, fetch any existing content for topic
+      final fallback = await client
+          .from('grammar_content')
+          .select()
+          .eq('topic_id', topicId)
+          .maybeSingle();
+
+      return fallback;
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<Map<String, dynamic>?> getGrammarContrast({
@@ -110,13 +124,17 @@ class SupabaseService {
     required String targetLanguage,
     required String nativeLanguage,
   }) async {
-    return await client
-        .from('grammar_contrast')
-        .select()
-        .eq('topic_id', topicId)
-        .eq('target_language', targetLanguage)
-        .eq('native_language', nativeLanguage)
-        .maybeSingle();
+    try {
+      return await client
+          .from('grammar_contrast')
+          .select()
+          .eq('topic_id', topicId)
+          .eq('target_language', targetLanguage)
+          .eq('native_language', nativeLanguage)
+          .maybeSingle();
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── Vocabulary ─────────────────────────────────────────────
@@ -159,21 +177,29 @@ class SupabaseService {
     String? topicId,
     int limit = 5,
   }) async {
-    var query = client
-        .from('exercises')
-        .select()
-        .eq('language_id', languageId)
-        .eq('level_id', levelId)
-        .eq('type', type)
-        .eq('native_language', nativeLanguage)
-        .eq('is_approved', true);
-
-    if (topicId != null) {
-      query = query.eq('topic_id', topicId);
+    try {
+      if (topicId != null && topicId.isNotEmpty) {
+        final result = await client
+            .from('exercises')
+            .select()
+            .eq('topic_id', topicId)
+            .eq('is_approved', true)
+            .limit(limit);
+        final list = List<Map<String, dynamic>>.from(result);
+        if (list.isNotEmpty) return list;
+      }
+      final result = await client
+          .from('exercises')
+          .select('*, languages!inner(code), levels!inner(code)')
+          .eq('languages.code', languageId)
+          .eq('levels.code', levelId)
+          .eq('type', type)
+          .eq('is_approved', true)
+          .limit(limit);
+      return List<Map<String, dynamic>>.from(result);
+    } catch (e) {
+      return [];
     }
-
-    // Random selection using order by random
-    return await query.limit(limit);
   }
 
   // ── User Progress ──────────────────────────────────────────

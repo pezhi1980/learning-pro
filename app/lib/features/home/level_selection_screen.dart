@@ -96,7 +96,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
 
   void _onLevelSelected(String levelId) {
     // Navigate to the level dashboard (grammar list for now)
-    context.go('/grammar/${widget.languageId}/$levelId');
+    context.push('/grammar/${widget.languageId}/$levelId');
   }
 
   @override
@@ -187,7 +187,13 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded,
                     color: AppTheme.darkTextSub, size: 20),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/languages');
+                  }
+                },
                 padding: EdgeInsets.zero,
               ),
               const Spacer(),

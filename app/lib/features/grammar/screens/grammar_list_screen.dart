@@ -114,7 +114,13 @@ class _GrammarListScreenState extends State<GrammarListScreen> {
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppTheme.darkTextSub, size: 20),
-            onPressed: () => context.pop(),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/levels/${widget.languageId}');
+              }
+            },
           ),
           Expanded(
             child: Column(
@@ -428,7 +434,7 @@ class _GrammarTopicCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '${orderIndex + 1}',
+                    '$orderIndex',
                     style: TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 16,

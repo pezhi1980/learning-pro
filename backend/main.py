@@ -41,8 +41,60 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from routers.admin import router as admin_router
+from backend.routers.learning_router import router as learning_router
+from backend.routers.course_router import router as course_router
+from backend.routers.session_router import router as session_router
+from backend.routers.assessment_router import router as assessment_router
+from backend.routers.audio_router import router as audio_router
+from backend.routers.speaking_router import router as speaking_router
+from backend.routers.writing_router import router as writing_router
+from backend.routers.intelligence_router import router as intelligence_router
+from backend.routers.lifecycle_router import router as lifecycle_router
+from backend.routers.admin_audit_router import router as admin_audit_router
+from backend.routers.ai_ops_router import router as ai_ops_router
+from backend.routers.security_router import router as security_router
+from backend.routers.analytics_router import router as analytics_router
+from backend.routers.engagement_router import router as engagement_router
+from backend.routers.utilities_router import router as utilities_router
+from backend.routers.operations_router import router as operations_router
+from backend.routers.config_router import router as config_router
+
 # ── Routers ─────────────────────────────────────────────────
 app.include_router(admin_router)
+app.include_router(learning_router)
+app.include_router(course_router)
+app.include_router(session_router)
+app.include_router(assessment_router)
+app.include_router(audio_router)
+app.include_router(speaking_router)
+app.include_router(writing_router)
+app.include_router(intelligence_router)
+app.include_router(lifecycle_router)
+app.include_router(admin_audit_router)
+app.include_router(ai_ops_router)
+app.include_router(security_router)
+app.include_router(analytics_router)
+app.include_router(engagement_router)
+app.include_router(utilities_router)
+app.include_router(operations_router)
+app.include_router(config_router)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ── Health Check ────────────────────────────────────────────
 @app.get("/", tags=["Health"])
