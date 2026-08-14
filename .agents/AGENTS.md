@@ -564,3 +564,1049 @@ Antigravity must NEVER create placeholder files or stub classes and mark a task 
 
 Every task must be genuinely implemented, fully integrated with existing infrastructure, and verified with comprehensive automated tests up to the full extent permitted by the current codebase capabilities.
 
+
+======================================================================
+PERMANENT PROJECT RULE
+LESSON AND EXERCISE GENERATION POLICY
+======================================================================
+
+This rule is mandatory for all current and future lesson/exercise generation in this project.
+
+It applies to the current English curriculum A1-C2.
+
+A0 is currently outside this rule until an authorized A0 curriculum is added.
+
+======================================================================
+1. SOURCE OF TRUTH
+======================================================================
+
+All Grammar and Vocabulary learning targets must originate from the application's authoritative PDF-backed Curriculum.
+
+The ContentAgent may generate:
+
+- explanations
+- examples
+- exercises
+- exercise options
+- exercise answers
+- hints
+- feedback text
+- repair content
+
+but it must never invent:
+
+- Grammar curriculum
+- Grammar Codes
+- Vocabulary curriculum
+- Vocabulary Senses
+- Guidewords
+- learning targets
+- curriculum levels
+
+Curriculum authority remains:
+
+PDF Sources
+→ Curriculum Layer
+→ Backend
+
+NOT the ContentAgent.
+
+
+======================================================================
+2. WHO DECIDES HOW MANY LESSONS EXIST
+======================================================================
+
+The ContentAgent must NOT decide the total number of lessons for a CEFR level.
+
+The number of lessons must be determined by the Backend Course/Lesson Planning system from the actual authorized Curriculum targets.
+
+Do NOT use arbitrary rules such as:
+
+"A1 must contain exactly 100 lessons."
+
+Do NOT force every Grammar source item into exactly one lesson.
+
+A source target may require:
+
+- one Micro Lesson
+- or multiple Micro Lessons
+
+depending on the authorized lesson structure.
+
+However:
+
+Every authorized Curriculum target assigned by the Backend must eventually receive complete educational coverage.
+
+No assigned target may be omitted.
+
+
+======================================================================
+3. MICRO LESSON PRINCIPLE
+======================================================================
+
+Grammar lessons should be divided into focused Micro Lessons.
+
+Each Micro Lesson should primarily teach one clearly defined learning burden.
+
+Recommended Grammar learning flow:
+
+Discover
+→ Explain
+→ Guided Practice
+→ Active Use
+
+Recommended Vocabulary learning flow:
+
+Encounter
+→ Recognition
+→ Recall
+→ Usage
+
+Do not unnecessarily combine several new concepts in one Micro Lesson.
+
+
+======================================================================
+4. COMPLETE BUT BOUNDED LESSONS
+======================================================================
+
+Every assigned target must be explained completely within its assigned scope.
+
+Do not omit essential information needed for correct understanding and use.
+
+At the same time:
+
+Do not expand into unassigned neighboring Grammar or Vocabulary curriculum.
+
+Principle:
+
+COMPLETE WITHIN SCOPE.
+
+NOT:
+
+INCOMPLETE.
+
+NOT:
+
+UNCONTROLLED EXPANSION.
+
+
+======================================================================
+5. GRAMMAR AND VOCABULARY COMPLEXITY
+======================================================================
+
+Grammar complexity and Vocabulary complexity must be controlled independently.
+
+When Grammar is the new target:
+
+- supporting Vocabulary should preferably already be known or allowed
+- supporting Grammar should not introduce unrelated new structures
+- Vocabulary difficulty must not interfere with understanding the Grammar target
+
+When Vocabulary is the new target:
+
+- supporting Grammar should preferably already be known or allowed
+- the sentence should not introduce unnecessary Grammar difficulty
+
+Principle:
+
+ONE PRIMARY LEARNING BURDEN AT A TIME.
+
+
+======================================================================
+6. EXERCISE TYPES
+======================================================================
+
+The system must support multiple exercise types.
+
+Possible types include:
+
+- Multiple Choice
+- Fill in the Blank
+- Sentence Completion
+- Word Order
+- Sentence Construction
+- Matching
+- Error Correction
+- Transformation
+- Context Selection
+- Recognition
+- Controlled Recall
+- Usage
+- Controlled Production
+
+Not every exercise type is appropriate for every target.
+
+The Backend must define or determine which exercise types are applicable to a target.
+
+Do NOT force every target to have every exercise type.
+
+
+======================================================================
+7. EXERCISE POOL ARCHITECTURE
+======================================================================
+
+Exercises must be stored in reusable validated Exercise Pools.
+
+The conceptual structure is:
+
+Learning Target
+→ Applicable Exercise Type
+→ Validated Exercise Pool
+
+
+For each applicable Target + Exercise Type combination, maintain:
+
+target_pool_size = 50
+
+minimum_safe_pool_size = 20
+
+normal_session_sample_size = 5
+
+
+Interpretation:
+
+50 = desired validated inventory.
+
+20 = refill threshold / minimum safe inventory.
+
+5 = normal number presented from that exercise type when the learning/session design requests that type.
+
+
+These values must be centralized in configuration.
+
+Do not scatter these numbers across the codebase.
+
+
+======================================================================
+8. 50 IS A TARGET POOL SIZE, NOT A BLIND CURRICULUM RULE
+======================================================================
+
+Do NOT force exactly 50 exercises when the exercise type is not pedagogically applicable.
+
+The rule is:
+
+For every APPLICABLE exercise type for a learning target, the system should aim to maintain approximately 50 distinct validated exercises.
+
+If an exercise type does not make sense for the target:
+
+do not generate artificial low-quality exercises merely to reach 50.
+
+
+======================================================================
+9. EXERCISES MUST BE PRE-GENERATED AND REUSABLE
+======================================================================
+
+The application should normally serve exercises from previously generated and validated pools.
+
+Normal learner interaction must NOT require a new AI API call for every question.
+
+Preferred architecture:
+
+ContentAgent
+→ generate exercise candidates
+→ Backend Validators
+→ accepted exercises
+→ Exercise Pool
+→ learners reuse the pool
+
+
+Principle:
+
+GENERATE ONCE.
+VALIDATE.
+STORE.
+REUSE.
+
+
+======================================================================
+10. NORMAL EXERCISE DISPLAY
+======================================================================
+
+A learner should normally receive only a small subset of the available pool.
+
+Default policy:
+
+normal_session_sample_size = 5
+
+This does NOT mean the pool contains only 5 exercises.
+
+Example:
+
+Target:
+third_person_s
+
+Exercise Type:
+Fill in the Blank
+
+Validated Pool:
+50 exercises
+
+Current learner session:
+5 selected exercises
+
+
+======================================================================
+11. EXERCISE SELECTION PRIORITY
+======================================================================
+
+When selecting exercises for a learner, prefer:
+
+1. unseen exercises
+2. exercises seen the fewest times
+3. least-recently-seen exercises
+4. appropriate previously difficult exercises when review requires them
+
+Avoid unnecessary immediate repetition.
+
+
+======================================================================
+12. PER-LEARNER EXERCISE HISTORY
+======================================================================
+
+The system must track exercise history per learner.
+
+At minimum support:
+
+- learner_id
+- exercise_id
+- seen_count
+- first_seen_at
+- last_seen_at
+- correct_count
+- incorrect_count
+- last_result
+
+This history must be separate for every learner.
+
+Learner A history must never affect Learner B.
+
+
+======================================================================
+13. WRONG ANSWER EXPANSION RULE
+======================================================================
+
+When a learner answers an exercise incorrectly:
+
+ADD 2 ADDITIONAL PRACTICE EXERCISES.
+
+Default:
+
+wrong_answer_extra_exercises = 2
+
+
+These additional exercises must primarily target the SAME learning target that was tested by the incorrect exercise.
+
+
+Conceptual flow:
+
+Wrong Answer
+→ identify exact tested target
+→ register learner error evidence
+→ select 2 additional exercises
+→ same target
+→ preferably appropriate exercise variation
+→ learner continues practice
+
+
+======================================================================
+14. SAME TARGET MEANS EXACT TARGET
+======================================================================
+
+The two additional exercises must not be based merely on a broad Topic name.
+
+They must be connected to the exact authorized learning target whenever the architecture provides that granularity.
+
+For example:
+
+Incorrect:
+
+He go to school every day.
+
+If the tested target is:
+
+Present Simple / third-person singular / +s
+
+the additional practice must primarily target that exact Micro Skill.
+
+Do not automatically reteach all of Present Simple.
+
+
+======================================================================
+15. EXTRA EXERCISES SHOULD USE VARIETY
+======================================================================
+
+The two additional exercises should not simply duplicate the failed question.
+
+Where appropriate, vary:
+
+- sentence
+- context
+- exercise format
+- lexical surface form
+
+while preserving the same learning target.
+
+Example:
+
+failed exercise:
+Fill in the Blank
+
+extra exercise 1:
+Error Correction
+
+extra exercise 2:
+Word Order
+
+This variation is allowed only when those exercise types are applicable and available.
+
+
+======================================================================
+16. NO SYNCHRONOUS AI GENERATION AFTER A WRONG ANSWER
+======================================================================
+
+A wrong learner answer must NOT normally trigger an immediate synchronous AI generation request.
+
+The learner must not wait for ContentAgent/API generation after making a mistake.
+
+Required behavior:
+
+Wrong Answer
+→ select extra exercises from existing validated pool
+
+
+NOT:
+
+Wrong Answer
+→ call AI
+→ wait
+→ generate two questions
+→ continue
+
+
+Principle:
+
+REPAIR PRACTICE MUST BE READY BEFORE IT IS NEEDED.
+
+
+======================================================================
+17. BACKGROUND POOL REFILL
+======================================================================
+
+When the available validated exercise inventory for:
+
+Target + Exercise Type
+
+falls below the configured safe threshold:
+
+minimum_safe_pool_size = 20
+
+the system should schedule a background refill operation.
+
+
+Conceptual flow:
+
+Pool count below threshold
+→ Background Job
+→ authorized Target
+→ ContentAgent
+→ new exercise candidates
+→ Backend Validators
+→ valid exercises added to pool
+→ invalid exercises rejected
+
+
+The refill job must not block the learner session.
+
+
+======================================================================
+18. POOL REFILL TARGET
+======================================================================
+
+Background refill should normally restore the pool toward:
+
+target_pool_size = 50
+
+Do not continuously generate beyond the configured target without a specific reason.
+
+Example:
+
+current usable pool = 18
+
+desired target = 50
+
+background generation should attempt to replenish the deficit.
+
+
+======================================================================
+19. USABLE POOL MUST ACCOUNT FOR LEARNER HISTORY
+======================================================================
+
+Global validated pool size and learner-specific available pool are different concepts.
+
+Example:
+
+Global pool:
+50
+
+Learner has already recently seen:
+35
+
+Learner-specific unseen/reusable availability:
+15
+
+The system may therefore need:
+
+- intelligent reuse
+- least-recently-seen selection
+- or future background expansion
+
+even though the global pool still contains 50 exercises.
+
+
+Do not confuse:
+
+GLOBAL POOL SIZE
+
+with:
+
+LEARNER-SPECIFIC AVAILABLE VARIETY.
+
+
+======================================================================
+20. DUPLICATE EXERCISE PREVENTION
+======================================================================
+
+Exercise generation must attempt to prevent exact and near-identical duplicates.
+
+Do not store multiple exercises that differ only trivially when they provide no meaningful variation.
+
+Where deterministic duplicate detection is possible, enforce it in Backend code.
+
+AI self-declaration is not sufficient.
+
+
+======================================================================
+21. EXERCISE VALIDATION IS MANDATORY
+======================================================================
+
+Every generated exercise must pass the official Backend validation pipeline before entering the usable pool.
+
+The ContentAgent must never directly insert an exercise into the production pool.
+
+Required flow:
+
+ContentAgent
+→ AgentOutput
+→ OutputValidator
+→ SourceValidator
+→ CoverageValidator
+→ CurriculumValidator
+→ ExerciseValidator
+→ accepted exercise
+→ Exercise Pool
+
+
+Rejected exercises must not enter the learner-facing pool.
+
+
+======================================================================
+22. EXERCISE SOURCE TRACEABILITY
+======================================================================
+
+Every exercise must preserve machine-readable linkage to its educational target.
+
+Where applicable, preserve:
+
+- exercise_id
+- learning_object_id
+- Grammar Code
+- Vocabulary source item ID
+- Vocabulary Sense ID
+- source reference
+- generation metadata
+- content version
+
+
+The system must always be able to answer:
+
+"Why does this exercise exist and what exactly does it test?"
+
+
+======================================================================
+23. VOCABULARY SENSE SAFETY
+======================================================================
+
+Vocabulary exercises must respect source-defined Senses.
+
+A learner failing one Sense of a word must not automatically receive exercises for unrelated Senses of the same lexeme.
+
+Example conceptually:
+
+Word X / Sense A
+
+is different from:
+
+Word X / Sense B
+
+
+Extra exercises must preserve the intended Sense.
+
+
+======================================================================
+24. SESSION EXERCISE COUNT IS NOT THE SAME AS POOL SIZE
+======================================================================
+
+Never confuse:
+
+pool inventory
+
+with:
+
+learner session size.
+
+
+A pool may contain:
+
+50 exercises
+
+while a learner sees:
+
+5 normal exercises
+
+and perhaps:
+
++2 for each relevant wrong answer.
+
+
+Do not display the entire pool in one lesson merely because it exists.
+
+
+======================================================================
+25. WRONG-ANSWER EXPANSION MUST BE CONTROLLED
+======================================================================
+
+The default rule is:
+
+1 incorrect answer
+→ 2 additional exercises
+
+
+However, prevent uncontrolled session explosion.
+
+Use configurable safety limits such as:
+
+max_extra_exercises_per_target_per_session
+
+and/or:
+
+max_total_error_expansion_per_session
+
+
+These limits must be centralized in configuration.
+
+
+The exact initial limits should be explicitly documented by the Backend implementation.
+
+Do not allow:
+
+many wrong answers
+→ infinitely growing session.
+
+
+======================================================================
+26. EXTRA PRACTICE IS EVIDENCE, NOT PUNISHMENT
+======================================================================
+
+Additional questions exist to strengthen a weak target.
+
+Do not create excessively difficult questions merely because the learner made a mistake.
+
+The two additional questions should remain appropriate to the learner's current task difficulty.
+
+
+======================================================================
+27. MASTERY INTEGRATION
+======================================================================
+
+Every answered exercise produces learning evidence.
+
+Exercise results must flow through:
+
+Answer Evaluation
+→ Mastery Service
+→ Error Tracker
+→ Review Service
+
+
+Do not manually change mastery based merely on:
+
+number of generated exercises
+
+or:
+
+number of displayed exercises.
+
+
+Generation != mastery.
+
+Display != mastery.
+
+
+======================================================================
+28. REPAIR INTEGRATION
+======================================================================
+
+Repeated mistakes may cause LearningDecisionService to create a future Repair decision.
+
+Immediate:
+
+wrong answer
+→ +2 same-target exercises
+
+
+Longer-term:
+
+repeated weakness
+→ Error Pattern
+→ Grammar Repair / Vocabulary Repair
+→ dedicated future learning activity
+
+
+These are related but different systems.
+
+
+======================================================================
+29. SMART REVIEW INTEGRATION
+======================================================================
+
+ReviewService may draw future questions from the same validated Exercise Pools.
+
+Prefer:
+
+unseen
+or
+appropriately spaced previously seen exercises.
+
+
+Do not unnecessarily generate new content if suitable validated content already exists.
+
+
+======================================================================
+30. AI COST CONTROL
+======================================================================
+
+Exercise generation must be designed to minimize unnecessary API usage.
+
+Required principles:
+
+- batch generation where safe
+- validated reusable pools
+- background refill
+- caching
+- duplicate prevention
+- no API call per learner click
+- no synchronous generation after every wrong answer
+- reuse before regenerate
+
+
+Core principle:
+
+NEVER GENERATE WITH AI WHEN EXISTING VALIDATED CONTENT CAN SATISFY THE LEARNING NEED.
+
+
+======================================================================
+31. BULK INITIAL GENERATION
+======================================================================
+
+When building initial content for a level such as A1:
+
+The Software Development Agent must NOT manually write exercises.
+
+It must operate the official Backend generation pipeline.
+
+
+Conceptual flow:
+
+Authorized A1 Curriculum
+→ Lesson Planning
+→ exact Learning Targets
+→ applicable Exercise Types
+→ desired pool sizes
+→ ContentAgent generation jobs
+→ Backend Validators
+→ Exercise Pools
+→ Content Versioning / Publishing
+
+
+Bulk generation must produce a report.
+
+
+======================================================================
+32. BULK GENERATION REPORT
+======================================================================
+
+For each generation run, report at minimum:
+
+- level
+- total targets
+- targets processed
+- Micro Lessons generated
+- Exercise Types used
+- exercise candidates generated
+- exercises validated
+- exercises rejected
+- current pool counts
+- targets below minimum pool
+- targets at target pool size
+- generation failures
+- API/model usage
+- retries
+- estimated/actual generation cost where available
+
+
+======================================================================
+33. LESSON GENERATION AND EXERCISE GENERATION ARE SEPARATE CONCERNS
+======================================================================
+
+A Lesson explains and teaches.
+
+An Exercise Pool supplies reusable practice.
+
+Do not require regeneration of the entire lesson merely because more exercise variety is needed.
+
+The system must be able to:
+
+keep an existing validated lesson
+
+while:
+
+adding additional validated exercises to its target pools.
+
+
+======================================================================
+34. CONTENT VERSIONING
+======================================================================
+
+Lessons and exercises must be version-aware.
+
+Do not silently overwrite previously validated production content.
+
+A regenerated exercise or lesson should preserve content history according to the existing Content Versioning architecture.
+
+
+======================================================================
+35. APPLICABLE EXERCISE TYPE POLICY
+======================================================================
+
+Each Learning Target should have an explicit or deterministically resolved list of applicable Exercise Types.
+
+Do not let ContentAgent freely decide the permanent curriculum exercise taxonomy.
+
+ContentAgent may generate content for exercise types requested by Backend.
+
+Backend decides what exercise types are requested.
+
+
+======================================================================
+36. DEFAULT CONFIGURATION
+======================================================================
+
+The project should centralize the following initial policy values:
+
+target_pool_size = 50
+
+minimum_safe_pool_size = 20
+
+normal_session_sample_size = 5
+
+wrong_answer_extra_exercises = 2
+
+
+Also define controlled values for:
+
+max_extra_exercises_per_target_per_session
+
+max_total_error_expansion_per_session
+
+background_refill_batch_size
+
+duplicate_detection_policy
+
+
+Do not scatter these constants throughout the project.
+
+
+======================================================================
+37. CONFIGURATION MAY EVOLVE
+======================================================================
+
+These numbers are initial product policy.
+
+They must be configurable.
+
+Do not redesign database schemas if later:
+
+50 becomes 40
+
+or:
+
+5 becomes 7
+
+or:
+
+2 becomes 1 or 3.
+
+
+Policy values must not be hardcoded into data identity.
+
+
+======================================================================
+38. ANTIGRAVITY DEVELOPER AGENT RULE
+======================================================================
+
+When the repository owner says:
+
+"Create A1 lessons and exercises."
+
+Antigravity must NOT manually write the educational content.
+
+It must interpret the request as:
+
+Execute or prepare the application's official Backend bulk-generation workflow according to this policy.
+
+
+When the owner says:
+
+"Create more exercises for Present Simple."
+
+Antigravity must NOT write those questions itself.
+
+It must invoke/orchestrate:
+
+authorized target
+→ ContentAgent
+→ Validators
+→ Exercise Pool
+
+
+======================================================================
+39. NO LEVEL-SPECIFIC AI AGENTS
+======================================================================
+
+Do not create:
+
+A1ContentAgent
+A2ContentAgent
+B1ContentAgent
+etc.
+
+Use the existing controlled ContentAgent.
+
+Levels, targets and exercise types are Backend input/context.
+
+
+======================================================================
+40. FINAL ARCHITECTURE
+======================================================================
+
+The required architecture is:
+
+
+AUTHORITATIVE PDF CURRICULUM
+        ↓
+COURSE / LESSON PLANNING
+        ↓
+EXACT LEARNING TARGET
+        ↓
+CONTENT AGENT
+        ↓
+BACKEND VALIDATION
+        ↓
+VALIDATED LESSON
+        +
+VALIDATED EXERCISE POOLS
+        ↓
+SESSION BUILDER
+        ↓
+SELECT SMALL EXERCISE SUBSET
+        ↓
+LEARNER ANSWERS
+        ↓
+CORRECT
+or
+INCORRECT
+        ↓
+IF INCORRECT:
++2 EXTRA EXERCISES
+FROM SAME TARGET POOL
+        ↓
+EVALUATION
+        ↓
+MASTERY / ERROR / REVIEW UPDATE
+        ↓
+IF POOL BELOW SAFE THRESHOLD:
+BACKGROUND CONTENT GENERATION
+        ↓
+VALIDATION
+        ↓
+POOL REFILL
+
+
+======================================================================
+41. FINAL NON-NEGOTIABLE RULES
+======================================================================
+
+PDF-backed Curriculum defines what may be taught.
+
+Backend defines exact learning targets.
+
+Backend defines applicable Exercise Types.
+
+ContentAgent generates lesson/exercise content.
+
+ContentAgent does not define Curriculum.
+
+Every assigned learning target must be covered.
+
+Lessons must be complete within their assigned scope.
+
+Exercise Pools must contain significant reusable variety.
+
+Target pool size is initially 50 per applicable Target + Exercise Type.
+
+Normal display size is initially 5.
+
+Every wrong answer adds 2 same-target practice exercises.
+
+Wrong-answer expansion must use existing validated exercises whenever possible.
+
+Wrong answers must NOT normally trigger synchronous AI generation.
+
+Pools below the safe threshold must be refilled in the background.
+
+The initial safe threshold is 20.
+
+All generated exercises must pass Backend validation.
+
+Rejected exercises must never enter usable pools.
+
+Per-learner exercise history must be tracked.
+
+Prefer unseen exercises before repeated exercises.
+
+Do not merge Vocabulary Senses.
+
+Do not allow unlimited error-driven session growth.
+
+Do not regenerate content unnecessarily.
+
+Reuse validated content before requesting AI generation.
+
+Generation does not equal mastery.
+
+Completion does not equal mastery.
+
+Antigravity must never become a second educational ContentAgent.
+
+This policy is permanent unless the repository owner explicitly changes it.
+
