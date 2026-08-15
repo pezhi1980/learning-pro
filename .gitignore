@@ -9,6 +9,8 @@
 *.env
 secrets/
 **/secrets/
+what did I do.md
+*.session.md
 
 # ── Flutter / Dart ─────────────────────────────────────────
 app/.dart_tool/

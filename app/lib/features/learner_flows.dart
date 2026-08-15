@@ -651,34 +651,7 @@ class ReviewScreen extends StatelessWidget {
   }
 }
 
-// ── 14. PROGRESS SCREEN ────────────────────────────────────────────────────
-
-class ProgressScreen extends StatelessWidget {
-  const ProgressScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.darkBg,
-      appBar: AppBar(title: const Text('Learner Progress Analytics'), backgroundColor: Colors.transparent),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Overall Accuracy', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 4),
-            const Text('85.5%', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            const Text('Level A1 Completion', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: 0.65, backgroundColor: AppTheme.darkSurface, color: AppTheme.primaryColor),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ── 14. PROGRESS SCREEN (Moved to features/progress/screens/progress_screen.dart) ──
 
 // ── 15. PLACEMENT TEST SCREEN ──────────────────────────────────────────────
 

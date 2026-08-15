@@ -33,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // Supported native languages
   final List<Map<String, String>> _nativeLanguages = [
     {'code': 'fa', 'name': 'فارسی', 'flag': '🇮🇷'},
+    {'code': 'da', 'name': 'دانمارکی (Dansk)', 'flag': '🇩🇰'},
     {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
     {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
     {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
@@ -211,7 +212,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Password is required';
-              if (v.length < 8) return 'At least 8 characters';
+              if (v.length < 6) return 'Password must be at least 6 characters';
+              if (!v.contains(RegExp(r'[A-Z]'))) return 'Must contain at least 1 uppercase letter (A-Z)';
+              if (!v.contains(RegExp(r'[a-z]'))) return 'Must contain lowercase letters (a-z)';
+              if (!v.contains(RegExp(r'[0-9]'))) return 'Must contain at least 1 number (0-9)';
               return null;
             },
           ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),

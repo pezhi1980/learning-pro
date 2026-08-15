@@ -51,6 +51,24 @@ class AppTheme {
     end: Alignment.bottomCenter,
   );
 
+  // ── Spacing Scale Design Tokens ───────────────────────────
+  static const double space4  = 4.0;
+  static const double space8  = 8.0;
+  static const double space12 = 12.0;
+  static const double space16 = 16.0;
+  static const double space24 = 24.0;
+  static const double space32 = 32.0;
+  static const double space40 = 40.0;
+
+  static const EdgeInsets paddingXs = EdgeInsets.all(space4);
+  static const EdgeInsets paddingSm = EdgeInsets.all(space8);
+  static const EdgeInsets paddingMd = EdgeInsets.all(space16);
+  static const EdgeInsets paddingLg = EdgeInsets.all(space24);
+  static const EdgeInsets paddingXl = EdgeInsets.all(space32);
+
+  static const EdgeInsets paddingHorizontalMd = EdgeInsets.symmetric(horizontal: space16);
+  static const EdgeInsets paddingHorizontalLg = EdgeInsets.symmetric(horizontal: space24);
+
   // ── Typography ─────────────────────────────────────────────
   static TextTheme _buildTextTheme(Color textColor, bool isRtl) {
     final fontFamily = isRtl ? 'Vazirmatn' : GoogleFonts.outfit().fontFamily!;

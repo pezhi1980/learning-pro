@@ -18,54 +18,54 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   static const List<_LevelItem> _levels = [
     _LevelItem(
       id: 'A1',
-      label: 'A1',
-      title: 'Beginner',
-      description: 'Basic words and phrases. Introduce yourself and ask simple questions.',
+      label: 'مرحله ۱',
+      title: 'مقدماتی (A1)',
+      description: 'آموزش گرامر به زبان مادری، جملات پایه و معرفی خود.',
       color: Color(0xFF10B981),    // emerald
       topics: 20,
       vocab: 500,
     ),
     _LevelItem(
       id: 'A2',
-      label: 'A2',
-      title: 'Elementary',
-      description: 'Everyday expressions, routines and immediate environment topics.',
+      label: 'مرحله ۲',
+      title: 'پایه (A2)',
+      description: 'عبارات روزمره، تفاوت‌های گرامری و مکالمات رایج.',
       color: Color(0xFF06B6D4),    // cyan
       topics: 28,
       vocab: 1000,
     ),
     _LevelItem(
       id: 'B1',
-      label: 'B1',
-      title: 'Intermediate',
-      description: 'Handle most situations while traveling. Express opinions and plans.',
+      label: 'مرحله ۳',
+      title: 'متوسط (B1)',
+      description: 'بیان نظرات، سفر و برقراری ارتباط در موقعیت‌های مختلف.',
       color: Color(0xFF3B82F6),    // blue
       topics: 35,
       vocab: 2000,
     ),
     _LevelItem(
       id: 'B2',
-      label: 'B2',
-      title: 'Upper Intermediate',
-      description: 'Understand complex texts. Interact fluently with native speakers.',
+      label: 'مرحله ۴',
+      title: 'فراتر از متوسط (B2)',
+      description: 'درک متون پیچیده و مکالمه روان با افراد.',
       color: Color(0xFF8B5CF6),    // violet
       topics: 40,
       vocab: 3500,
     ),
     _LevelItem(
       id: 'C1',
-      label: 'C1',
-      title: 'Advanced',
-      description: 'Express ideas fluently and spontaneously without much searching.',
+      label: 'مرحله ۵',
+      title: 'پیشرفته (C1)',
+      description: 'تسلط و بیان شیوا و روان بدون وقفه.',
       color: Color(0xFFEC4899),    // pink
       topics: 45,
       vocab: 5000,
     ),
     _LevelItem(
       id: 'C2',
-      label: 'C2',
-      title: 'Mastery',
-      description: 'Understand virtually everything. Express precisely in complex situations.',
+      label: 'مرحله ۶',
+      title: 'تسلط کامل (C2)',
+      description: 'درک کامل تمامی مفاهیم و بیان دقیق در شرایط پیچیده.',
       color: Color(0xFFF59E0B),    // amber
       topics: 30,
       vocab: 8000,

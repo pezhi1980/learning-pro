@@ -137,6 +137,56 @@ class SupabaseService {
     }
   }
 
+  // ── Session Caches & ID Resolvers ──────────────────────────────────
+  static final Map<String, String> _languageIdCache = {};
+  static final Map<String, String> _levelIdCache = {};
+
+  static final RegExp _uuidRegex = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  static Future<String> resolveLanguageId(String codeOrUuid) async {
+    if (codeOrUuid.isEmpty) return codeOrUuid;
+    if (_uuidRegex.hasMatch(codeOrUuid)) return codeOrUuid;
+    if (_languageIdCache.containsKey(codeOrUuid)) {
+      return _languageIdCache[codeOrUuid]!;
+    }
+    try {
+      final res = await client
+          .from('languages')
+          .select('id')
+          .eq('code', codeOrUuid)
+          .maybeSingle();
+      if (res != null && res['id'] != null) {
+        final uuid = res['id'].toString();
+        _languageIdCache[codeOrUuid] = uuid;
+        return uuid;
+      }
+    } catch (_) {}
+    return codeOrUuid;
+  }
+
+  static Future<String> resolveLevelId(String codeOrUuid) async {
+    if (codeOrUuid.isEmpty) return codeOrUuid;
+    if (_uuidRegex.hasMatch(codeOrUuid)) return codeOrUuid;
+    if (_levelIdCache.containsKey(codeOrUuid)) {
+      return _levelIdCache[codeOrUuid]!;
+    }
+    try {
+      final res = await client
+          .from('levels')
+          .select('id')
+          .eq('code', codeOrUuid)
+          .maybeSingle();
+      if (res != null && res['id'] != null) {
+        final uuid = res['id'].toString();
+        _levelIdCache[codeOrUuid] = uuid;
+        return uuid;
+      }
+    } catch (_) {}
+    return codeOrUuid;
+  }
+
   // ── Vocabulary ─────────────────────────────────────────────
   static Future<List<Map<String, dynamic>>> getVocabulary({
     required String languageId,
@@ -144,13 +194,32 @@ class SupabaseService {
     int limit = 20,
     int offset = 0,
   }) async {
-    return await client
-        .from('vocabulary')
-        .select('*, vocabulary_translations!inner(*)')
-        .eq('language_id', languageId)
-        .eq('level_id', levelId)
-        .eq('is_published', true)
-        .range(offset, offset + limit - 1);
+    final langUuid = await resolveLanguageId(languageId);
+    final levelUuid = await resolveLevelId(levelId);
+
+    try {
+      final res = await client
+          .from('vocabulary')
+          .select('*, vocabulary_translations!inner(*)')
+          .eq('language_id', langUuid)
+          .eq('level_id', levelUuid)
+          .eq('is_published', true)
+          .range(offset, offset + limit - 1);
+      return List<Map<String, dynamic>>.from(res);
+    } catch (_) {
+      try {
+        final res = await client
+            .from('vocabulary')
+            .select('*, languages!inner(code), levels!inner(code), vocabulary_translations!inner(*)')
+            .eq('languages.code', languageId)
+            .eq('levels.code', levelId)
+            .eq('is_published', true)
+            .range(offset, offset + limit - 1);
+        return List<Map<String, dynamic>>.from(res);
+      } catch (e) {
+        return [];
+      }
+    }
   }
 
   // ── Flashcards ─────────────────────────────────────────────
@@ -159,13 +228,21 @@ class SupabaseService {
     required String levelId,
     required String nativeLanguage,
   }) async {
-    return await client
-        .from('flashcards_with_vocab')
-        .select()
-        .eq('language_id', languageId)
-        .eq('level_id', levelId)
-        .eq('native_language', nativeLanguage)
-        .eq('is_approved', true);
+    final langUuid = await resolveLanguageId(languageId);
+    final levelUuid = await resolveLevelId(levelId);
+
+    try {
+      final res = await client
+          .from('flashcards_with_vocab')
+          .select()
+          .eq('language_id', langUuid)
+          .eq('level_id', levelUuid)
+          .eq('native_language', nativeLanguage)
+          .eq('is_approved', true);
+      return List<Map<String, dynamic>>.from(res);
+    } catch (_) {
+      return [];
+    }
   }
 
   // ── Exercises ──────────────────────────────────────────────
@@ -188,7 +265,22 @@ class SupabaseService {
         final list = List<Map<String, dynamic>>.from(result);
         if (list.isNotEmpty) return list;
       }
+
+      final langUuid = await resolveLanguageId(languageId);
+      final levelUuid = await resolveLevelId(levelId);
+
       final result = await client
+          .from('exercises')
+          .select()
+          .eq('language_id', langUuid)
+          .eq('level_id', levelUuid)
+          .eq('type', type)
+          .eq('is_approved', true)
+          .limit(limit);
+      final list = List<Map<String, dynamic>>.from(result);
+      if (list.isNotEmpty) return list;
+
+      final fallback = await client
           .from('exercises')
           .select('*, languages!inner(code), levels!inner(code)')
           .eq('languages.code', languageId)
@@ -196,7 +288,7 @@ class SupabaseService {
           .eq('type', type)
           .eq('is_approved', true)
           .limit(limit);
-      return List<Map<String, dynamic>>.from(result);
+      return List<Map<String, dynamic>>.from(fallback);
     } catch (e) {
       return [];
     }
@@ -210,14 +302,18 @@ class SupabaseService {
     required bool isCorrect,
   }) async {
     if (userId == null) return;
+    final langUuid = await resolveLanguageId(languageId);
+    final levelUuid = await resolveLevelId(levelId);
 
-    await client.rpc('update_user_progress', params: {
-      'p_user_id': userId,
-      'p_language_id': languageId,
-      'p_level_id': levelId,
-      'p_topic_id': topicId,
-      'p_is_correct': isCorrect,
-    });
+    try {
+      await client.rpc('update_user_progress', params: {
+        'p_user_id': userId,
+        'p_language_id': langUuid,
+        'p_level_id': levelUuid,
+        'p_topic_id': topicId,
+        'p_is_correct': isCorrect,
+      });
+    } catch (_) {}
   }
 
   static Future<List<Map<String, dynamic>>> getWeakTopics({
@@ -226,11 +322,20 @@ class SupabaseService {
     int limit = 5,
   }) async {
     if (userId == null) return [];
-    return await client.rpc('get_weak_topics', params: {
-      'p_user_id': userId,
-      'p_language_id': languageId,
-      'p_level_id': levelId,
-      'p_limit': limit,
-    });
+    final langUuid = await resolveLanguageId(languageId);
+    final levelUuid = await resolveLevelId(levelId);
+
+    try {
+      final res = await client.rpc('get_weak_topics', params: {
+        'p_user_id': userId,
+        'p_language_id': langUuid,
+        'p_level_id': levelUuid,
+        'p_limit': limit,
+      });
+      return List<Map<String, dynamic>>.from(res ?? []);
+    } catch (_) {
+      return [];
+    }
   }
 }
+

@@ -87,7 +87,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   void _onContinue() {
     if (_selectedLanguageId == null) return;
-    context.push('/levels/$_selectedLanguageId');
+    context.push('/category-select/$_selectedLanguageId');
   }
 
   @override

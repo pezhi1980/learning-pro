@@ -10,6 +10,9 @@ if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
@@ -465,7 +468,7 @@ def seed_grammar_content():
             "topic_id": topic_id,
             "native_language": "fa",
             "title": content_data["title"],
-            "explanation": content_data["explanation"] + "\n\n📌 تفاوت با زبان فارسی:\n" + content_data["comparison"],
+            "explanation": content_data["explanation"] + "\n\n📌 تفاوت با زبان مادری:\n" + content_data["comparison"],
             "examples_json": content_data["examples_json"],
             "tips_json": content_data["tips_json"],
             "common_mistakes_json": content_data["common_mistakes_json"],

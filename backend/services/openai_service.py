@@ -70,12 +70,13 @@ async def generate_grammar_content(topic_code: str, native_language: str) -> dic
     topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
 
     lang_instruction = {
-        "fa": "Write the explanation, tips and common mistakes in Persian (Farsi). Keep example sentences in English.",
+        "fa": "Write the explanation, comparison, tips and common mistakes in Persian (Farsi). Keep target example sentences in English.",
+        "da": "Write the explanation, comparison, tips and common mistakes in Danish (Dansk). Keep target example sentences in English.",
         "en": "Write everything in English.",
-        "ar": "Write the explanation, tips and common mistakes in Arabic. Keep example sentences in English.",
+        "ar": "Write the explanation, comparison, tips and common mistakes in Arabic. Keep target example sentences in English.",
     }.get(native_language, "Write in English.")
 
-    prompt = f"""You are an expert English grammar teacher creating A1 CEFR level content.
+    prompt = f"""You are an expert English grammar teacher creating A1-A2 CEFR level content.
 
 Topic: {topic_label}
 Native Language for Explanations: {native_language}
@@ -85,11 +86,12 @@ Create grammar content in the following JSON format ONLY. Return ONLY valid JSON
 
 {{
   "title": "<topic title in English>",
-  "explanation": "<clear explanation in {native_language} language, 2-4 paragraphs, A1 level>",
+  "explanation": "<clear explanation in {native_language} language, 2-4 paragraphs, A1-A2 level>",
+  "comparison": "<clear explanation in {native_language} language explaining the structural difference between English grammar and {native_language} grammar for this topic>",
   "examples_json": [
-    {{"target": "<English sentence>", "native": "<translation in {native_language}>", "breakdown": "<short grammar note in {native_language}>"}},
-    {{"target": "<English sentence>", "native": "<translation in {native_language}>", "breakdown": "<short grammar note in {native_language}>"}},
-    {{"target": "<English sentence>", "native": "<translation in {native_language}>", "breakdown": "<short grammar note in {native_language}>"}}
+    {{"target": "<English sentence 1>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language} explaining native language difference>"}},
+    {{"target": "<English sentence 2>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language} explaining native language difference>"}},
+    {{"target": "<English sentence 3>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}}
   ],
   "tips_json": [
     {{"tip": "<important tip in {native_language}>", "example": "<short English example>"}}
@@ -100,10 +102,11 @@ Create grammar content in the following JSON format ONLY. Return ONLY valid JSON
 }}
 
 Requirements:
-- Explanation must be clear for a complete beginner
-- All examples must be simple, real-world sentences appropriate for A1 level
+- Explanation and comparison must be clear for a beginner learner
+- Comparison must highlight exact structural differences between English and {native_language} (e.g. word order, verb position, articles)
+- Provide at least 2 clear examples illustrating the native language contrast in breakdown
 - Do NOT copy from any textbook — create original content
-- Be accurate and follow CEFR A1 standards exactly"""
+- Follow CEFR standards exactly"""
 
     response = await client.chat.completions.create(
         model=GENERATION_MODEL,
