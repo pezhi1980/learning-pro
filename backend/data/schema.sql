@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS exercises (
     language_id UUID REFERENCES languages(id) ON DELETE CASCADE,
     level_id UUID REFERENCES levels(id) ON DELETE CASCADE,
     topic_id UUID REFERENCES grammar_topics(id) ON DELETE SET NULL,
-    type TEXT NOT NULL DEFAULT 'multiple_choice',
+    type TEXT NOT NULL DEFAULT 'multiple_choice' CHECK (type IN ('multiple_choice', 'fill_blank', 'sentence_order', 'error_correction', 'translation')),
     prompt TEXT NOT NULL,
     options JSONB DEFAULT '[]'::jsonb,
     correct_answer TEXT NOT NULL,
@@ -140,6 +140,11 @@ CREATE TABLE IF NOT EXISTS exercises (
     quality_score FLOAT DEFAULT 1.0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE exercises
+ADD CONSTRAINT exercises_type_check
+CHECK (type IN ('multiple_choice', 'fill_blank', 'sentence_order',
+                'error_correction', 'translation'));
 
 -- ── 11. User Progress Table ────────────────────────────────
 CREATE TABLE IF NOT EXISTS user_progress (
