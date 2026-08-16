@@ -30,19 +30,23 @@ os.environ["SUPABASE_URL"] = SUPABASE_URL
 os.environ["SUPABASE_SERVICE_ROLE_KEY"] = SUPABASE_SERVICE_ROLE_KEY
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
+import importlib.util
 from supabase import create_client
-from services.openai_service import (
-    A1_GRAMMAR_TOPICS,
-    EXERCISE_TYPES,
-    generate_multiple_choice_exercises,
-    generate_fill_blank_exercises,
-    generate_sentence_order_exercises,
-    generate_error_correction_exercises,
-    generate_translation_exercises,
-    filter1_quality_check,
-    filter2_duplicate_check,
-    extract_comparable_text,
-)
+
+spec = importlib.util.spec_from_file_location("openai_service", "services/openai_service.py")
+openai_service = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(openai_service)
+
+A1_GRAMMAR_TOPICS = openai_service.A1_GRAMMAR_TOPICS
+EXERCISE_TYPES = openai_service.EXERCISE_TYPES
+generate_multiple_choice_exercises = openai_service.generate_multiple_choice_exercises
+generate_fill_blank_exercises = openai_service.generate_fill_blank_exercises
+generate_sentence_order_exercises = openai_service.generate_sentence_order_exercises
+generate_error_correction_exercises = openai_service.generate_error_correction_exercises
+generate_translation_exercises = openai_service.generate_translation_exercises
+filter1_quality_check = openai_service.filter1_quality_check
+filter2_duplicate_check = openai_service.filter2_duplicate_check
+extract_comparable_text = openai_service.extract_comparable_text
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 

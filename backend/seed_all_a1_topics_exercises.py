@@ -45,7 +45,7 @@ EXERCISES_DATA = {
         {"question": "Look at ___ sun.", "options": ["a", "an", "the", "some"], "correct_answer": "the", "explanation": "برای پدیده‌های تک و منحصربه‌فرد مثل خورشید از حرف تعریف the استفاده می‌کنیم."},
         {"question": "___ sky is blue today.", "options": ["A", "An", "The", "Some"], "correct_answer": "The", "explanation": "برای آسمان (sky) چون یکتاست از The استفاده می‌شود."},
         {"question": "Open ___ door, please.", "options": ["a", "an", "the", "one"], "correct_answer": "the", "explanation": "وقتی درباره درِ مشخصی صحبت می‌کنیم از the استفاده می‌کنیم."},
-        {"question": "___ capital of France is Paris.", "options": ["A", "An", "The", "Any"], "correct_answer": "The", "explanation": "برای واژه‌های مشخص مانند پایتخت یک کشور از The استفاده می‌شود."},
+        {"question": "___ capital of Sweden is Stockholm.", "options": ["A", "An", "The", "Any"], "correct_answer": "The", "explanation": "برای واژه‌های مشخص مانند پایتخت یک کشور از The استفاده می‌شود."},
         {"question": "She plays ___ piano very well.", "options": ["a", "an", "the", "some"], "correct_answer": "the", "explanation": "قبل از نام آلات موسیقی معمولاً از the استفاده می‌شود."},
     ],
     "plural_nouns": [
@@ -71,14 +71,14 @@ EXERCISES_DATA = {
     ],
     "present_simple_affirmative": [
         {"question": "She ___ English every day.", "options": ["study", "studies", "studys", "studying"], "correct_answer": "studies", "explanation": "در حال ساده برای she فعل s/es می‌گیرد (study -> studies)."},
-        {"question": "They ___ in London.", "options": ["live", "lives", "living", "lived"], "correct_answer": "live", "explanation": "برای ضمایر جمع (They) فعل به صورت ساده می‌آید."},
+        {"question": "They ___ in Copenhagen.", "options": ["live", "lives", "living", "lived"], "correct_answer": "live", "explanation": "برای ضمایر جمع (They) فعل به صورت ساده می‌آید."},
         {"question": "He ___ coffee in the morning.", "options": ["drink", "drinks", "drinking", "drank"], "correct_answer": "drinks", "explanation": "برای he در حال ساده فعل s می‌گیرد."},
         {"question": "I ___ to school by bus.", "options": ["go", "goes", "going", "went"], "correct_answer": "go", "explanation": "برای ضمیر I فعل به شکل ساده می‌آید."},
         {"question": "My father ___ at a hospital.", "options": ["work", "works", "working", "worked"], "correct_answer": "works", "explanation": "پدر (مفرد سوم شخص) نیازمند فعل با پسوند s است."},
     ],
     "present_simple_negative": [
         {"question": "I ___ like cold weather.", "options": ["don't", "doesn't", "not", "am not"], "correct_answer": "don't", "explanation": "منفی حال ساده برای I با don't ساخته می‌شود."},
-        {"question": "She ___ speak French.", "options": ["don't", "doesn't", "not", "isn't"], "correct_answer": "doesn't", "explanation": "منفی حال ساده برای she با doesn't ساخته می‌شود."},
+        {"question": "She ___ speak Danish.", "options": ["don't", "doesn't", "not", "isn't"], "correct_answer": "doesn't", "explanation": "منفی حال ساده برای she با doesn't ساخته می‌شود."},
         {"question": "They ___ play football on Sundays.", "options": ["don't", "doesn't", "aren't", "not"], "correct_answer": "don't", "explanation": "برای جمع (They) از don't استفاده می‌کنیم."},
         {"question": "He ___ have a car.", "options": ["don't", "doesn't", "isn't", "not"], "correct_answer": "doesn't", "explanation": "منفی حال ساده برای He با doesn't ساخته می‌شود و فعل به شکل پایه می‌آید."},
         {"question": "We ___ work on weekends.", "options": ["don't", "doesn't", "aren't", "not"], "correct_answer": "don't", "explanation": "برای We منفی با don't انجام می‌شود."},

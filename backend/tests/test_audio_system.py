@@ -182,8 +182,8 @@ class TestAudioSystem(unittest.TestCase):
         eval_res_exact = self.listening_service.evaluate_listening_exercise(
             learner_id="user_listen_eval",
             listening_target_id="target_01",
-            learner_answer="She lives in London.",
-            target_transcript="She lives in London.",
+            learner_answer="She lives in Stockholm.",
+            target_transcript="She lives in Stockholm.",
         )
         self.assertTrue(eval_res_exact.is_correct)
         self.assertEqual(eval_res_exact.similarity_score, 1.0)
@@ -191,8 +191,8 @@ class TestAudioSystem(unittest.TestCase):
         eval_res_close = self.listening_service.evaluate_listening_exercise(
             learner_id="user_listen_eval",
             listening_target_id="target_01",
-            learner_answer="She lives in London",  # missing period
-            target_transcript="She lives in London.",
+            learner_answer="She lives in Stockholm",  # missing period
+            target_transcript="She lives in Stockholm.",
         )
         self.assertTrue(eval_res_close.is_correct)
 
