@@ -173,6 +173,8 @@ def main():
         # Default topic lists per level
         if args.level.upper() == "A1":
             topic_list = [t["topic_code"] for t in openai_service.A1_GRAMMAR_TOPICS]
+        elif args.level.upper() == "A2" and hasattr(openai_service, "A2_GRAMMAR_TOPICS"):
+            topic_list = [t["topic_code"] for t in openai_service.A2_GRAMMAR_TOPICS]
         else:
             topic_list = [f"{args.level.lower()}_grammar_topic_{i}" for i in range(1, 6)]
 

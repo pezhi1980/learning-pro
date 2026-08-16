@@ -89,6 +89,30 @@ A1_GRAMMAR_TOPICS = [
     {"topic_code": "like_and_want", "order_index": 20},
 ]
 
+# ── A2 Grammar Topics (CEFR standard) ─────────────────────────────────────────
+A2_GRAMMAR_TOPICS = [
+    {"topic_code": "past_simple_regular", "order_index": 1},
+    {"topic_code": "past_simple_irregular", "order_index": 2},
+    {"topic_code": "past_continuous", "order_index": 3},
+    {"topic_code": "present_continuous_future", "order_index": 4},
+    {"topic_code": "comparatives_superlatives", "order_index": 5},
+    {"topic_code": "going_to_future", "order_index": 6},
+    {"topic_code": "will_future_predictions", "order_index": 7},
+    {"topic_code": "present_perfect_simple", "order_index": 8},
+    {"topic_code": "modal_verbs_must_should", "order_index": 9},
+    {"topic_code": "relative_clauses_basic", "order_index": 10},
+    {"topic_code": "adverbs_of_frequency", "order_index": 11},
+    {"topic_code": "first_conditional", "order_index": 12},
+    {"topic_code": "count_uncount_quantifiers", "order_index": 13},
+    {"topic_code": "prepositions_time_movement", "order_index": 14},
+    {"topic_code": "question_tags_basic", "order_index": 15},
+    {"topic_code": "verb_patterns_infinitive_gerund", "order_index": 16},
+    {"topic_code": "possessive_pronouns_mine_yours", "order_index": 17},
+    {"topic_code": "reflexive_pronouns", "order_index": 18},
+    {"topic_code": "too_and_enough", "order_index": 19},
+    {"topic_code": "used_to_past", "order_index": 20},
+]
+
 TOPIC_LABELS = {
     "verb_to_be_present": "Verb 'to be' – Present",
     "personal_pronouns": "Personal Pronouns",
@@ -110,6 +134,28 @@ TOPIC_LABELS = {
     "wh_questions": "Wh- Questions",
     "object_pronouns": "Object Pronouns",
     "like_and_want": "Like and Want",
+
+    # A2 Topics
+    "past_simple_regular": "Past Simple – Regular Verbs",
+    "past_simple_irregular": "Past Simple – Irregular Verbs",
+    "past_continuous": "Past Continuous",
+    "present_continuous_future": "Present Continuous for Future",
+    "comparatives_superlatives": "Comparatives & Superlatives",
+    "going_to_future": "Future with 'going to'",
+    "will_future_predictions": "Future with 'will'",
+    "present_perfect_simple": "Present Perfect Simple",
+    "modal_verbs_must_should": "Modals (must, should, have to)",
+    "relative_clauses_basic": "Relative Clauses (who, which, where)",
+    "adverbs_of_frequency": "Adverbs of Frequency & Manner",
+    "first_conditional": "First Conditional",
+    "count_uncount_quantifiers": "Countable & Uncountable Nouns",
+    "prepositions_time_movement": "Prepositions of Time & Movement",
+    "question_tags_basic": "Question Tags",
+    "verb_patterns_infinitive_gerund": "Verb Patterns (Gerund / Infinitive)",
+    "possessive_pronouns_mine_yours": "Possessive Pronouns (mine, yours)",
+    "reflexive_pronouns": "Reflexive Pronouns (myself, yourself)",
+    "too_and_enough": "Too and Enough",
+    "used_to_past": "Used to (Past Habits)",
 }
 
 
