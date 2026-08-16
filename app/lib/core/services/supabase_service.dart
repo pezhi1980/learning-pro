@@ -256,12 +256,10 @@ class SupabaseService {
   }) async {
     try {
       if (topicId != null && topicId.isNotEmpty) {
-        final result = await client
-            .from('exercises')
-            .select()
-            .eq('topic_id', topicId)
-            .eq('is_approved', true)
-            .limit(limit);
+        final result = await client.rpc('get_random_exercises', params: {
+          'p_topic_id': topicId,
+          'p_limit': limit,
+        });
         final list = List<Map<String, dynamic>>.from(result);
         if (list.isNotEmpty) return list;
       }
@@ -269,25 +267,21 @@ class SupabaseService {
       final langUuid = await resolveLanguageId(languageId);
       final levelUuid = await resolveLevelId(levelId);
 
-      final result = await client
-          .from('exercises')
-          .select()
-          .eq('language_id', langUuid)
-          .eq('level_id', levelUuid)
-          .eq('type', type)
-          .eq('is_approved', true)
-          .limit(limit);
+      final result = await client.rpc('get_random_exercises', params: {
+        'p_language_id': langUuid,
+        'p_level_id': levelUuid,
+        'p_type': type,
+        'p_limit': limit,
+      });
       final list = List<Map<String, dynamic>>.from(result);
       if (list.isNotEmpty) return list;
 
-      final fallback = await client
-          .from('exercises')
-          .select('*, languages!inner(code), levels!inner(code)')
-          .eq('languages.code', languageId)
-          .eq('levels.code', levelId)
-          .eq('type', type)
-          .eq('is_approved', true)
-          .limit(limit);
+      final fallback = await client.rpc('get_random_exercises', params: {
+        'p_language_id': langUuid,
+        'p_level_id': levelUuid,
+        'p_type': type,
+        'p_limit': limit,
+      });
       return List<Map<String, dynamic>>.from(fallback);
     } catch (e) {
       return [];

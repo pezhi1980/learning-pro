@@ -227,3 +227,27 @@ BEGIN
     LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 4. Get Random Exercises Function (Random Selection at DB Level)
+CREATE OR REPLACE FUNCTION get_random_exercises(
+    p_topic_id UUID DEFAULT NULL,
+    p_language_id UUID DEFAULT NULL,
+    p_level_id UUID DEFAULT NULL,
+    p_type TEXT DEFAULT NULL,
+    p_limit INT DEFAULT 5
+)
+RETURNS SETOF exercises
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT *
+    FROM exercises
+    WHERE is_approved = true
+      AND (p_topic_id IS NULL OR topic_id = p_topic_id)
+      AND (p_language_id IS NULL OR language_id = p_language_id)
+      AND (p_level_id IS NULL OR level_id = p_level_id)
+      AND (p_type IS NULL OR type::text = p_type)
+    ORDER BY random()
+    LIMIT p_limit;
+$$;
+

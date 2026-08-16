@@ -33,7 +33,9 @@ os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 import importlib.util
 from supabase import create_client
 
-spec = importlib.util.spec_from_file_location("openai_service", "services/openai_service.py")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+openai_service_path = os.path.join(script_dir, "services", "openai_service.py")
+spec = importlib.util.spec_from_file_location("openai_service", openai_service_path)
 openai_service = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(openai_service)
 
@@ -50,7 +52,14 @@ extract_comparable_text = openai_service.extract_comparable_text
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-QUESTIONS_PER_TYPE = 5
+# TODO: Increase pool sizes for fill_blank, sentence_order, error_correction, and translation if a similar practice/quiz split is built for them later.
+QUESTIONS_PER_TYPE = {
+    "multiple_choice": 15,
+    "fill_blank": 5,
+    "sentence_order": 5,
+    "error_correction": 5,
+    "translation": 5,
+}
 
 GENERATOR_FOR_TYPE = {
     "multiple_choice": generate_multiple_choice_exercises,
@@ -111,94 +120,101 @@ async def main():
         print(f"\n[{index}/20] Topic '{topic_code}' — Loaded {len(existing_texts)} existing exercise texts across all types.")
 
         for exercise_type in EXERCISE_TYPES:
+            target_count = QUESTIONS_PER_TYPE.get(exercise_type, 5) if isinstance(QUESTIONS_PER_TYPE, dict) else QUESTIONS_PER_TYPE
             # Check existing count for this specific type
             ex_res = sb.table("exercises").select("id").eq("topic_id", topic_id).eq("type", exercise_type).execute()
             existing_count = len(ex_res.data)
 
-            if existing_count >= QUESTIONS_PER_TYPE:
-                print(f"  • Type '{exercise_type}' already has {existing_count}/{QUESTIONS_PER_TYPE} questions. Skipping.")
+            if existing_count >= target_count:
+                print(f"  • Type '{exercise_type}' already has {existing_count}/{target_count} questions. Skipping.")
                 continue
 
-            needed = QUESTIONS_PER_TYPE - existing_count
+            needed = target_count - existing_count
             print(f"  • Generating {needed} '{exercise_type}' exercises (currently has {existing_count})...")
 
             generator = GENERATOR_FOR_TYPE[exercise_type]
-            raw_exercises = await generator(topic_code, "fa", count=8)
             approved_count = 0
+            max_attempts = 5
+            attempts = 0
 
-            for ex in raw_exercises:
-                if approved_count >= needed:
-                    break
+            while approved_count < needed and attempts < max_attempts:
+                attempts += 1
+                batch_count = max(needed - approved_count + 3, 8)
+                raw_exercises = await generator(topic_code, "fa", count=batch_count)
 
-                text = extract_comparable_text(exercise_type, ex)
-                if not text:
-                    continue
+                for ex in raw_exercises:
+                    if approved_count >= needed:
+                        break
 
-                # Filter 1: Quality Validation (type-aware)
-                passed_f1, score, reason = await filter1_quality_check(ex, topic_code, exercise_type)
-                if not passed_f1:
-                    print(f"    ❌ Filter 1 ({exercise_type}) Rejected ({score:.2f}): {text[:40]}... Reason: {reason}")
-                    continue
+                    text = extract_comparable_text(exercise_type, ex)
+                    if not text:
+                        continue
 
-                # Filter 2: Cross-type & within-type Deduplication
-                is_dup, dup_reason = filter2_duplicate_check(text, existing_texts)
-                if is_dup:
-                    print(f"    ❌ Filter 2 ({exercise_type}) Rejected (Duplicate): {text[:40]}... Reason: {dup_reason}")
-                    continue
+                    # Filter 1: Quality Validation (type-aware)
+                    passed_f1, score, reason = await filter1_quality_check(ex, topic_code, exercise_type)
+                    if not passed_f1:
+                        print(f"    ❌ Filter 1 ({exercise_type}) Rejected ({score:.2f}): {text[:40]}... Reason: {reason}")
+                        continue
 
-                # Build type-specific content_json matching contract
-                if exercise_type == "multiple_choice":
-                    content_json = {
-                        "question": ex.get("question", text),
-                        "options": ex.get("options", []),
-                        "correct_answer": ex.get("correct_answer", ""),
-                        "explanation": ex.get("explanation", ""),
-                    }
-                elif exercise_type == "fill_blank":
-                    content_json = {
-                        "sentence": ex.get("sentence", text),
-                        "correct_answer": ex.get("correct_answer", ""),
-                        "acceptable_answers": ex.get("acceptable_answers", []),
-                        "explanation": ex.get("explanation", ""),
-                    }
-                elif exercise_type == "sentence_order":
-                    content_json = {
-                        "target_sentence": ex.get("target_sentence", text),
-                        "explanation": ex.get("explanation", ""),
-                    }
-                elif exercise_type == "error_correction":
-                    content_json = {
-                        "incorrect_sentence": ex.get("incorrect_sentence", ""),
-                        "correct_sentence": ex.get("correct_sentence", text),
-                        "explanation": ex.get("explanation", ""),
-                    }
-                elif exercise_type == "translation":
-                    content_json = {
-                        "source_sentence": ex.get("source_sentence", ""),
-                        "target_sentence": ex.get("target_sentence", text),
-                        "explanation": ex.get("explanation", ""),
-                    }
-                else:
-                    content_json = ex
+                    # Filter 2: Cross-type & within-type Deduplication
+                    is_dup, dup_reason = filter2_duplicate_check(text, existing_texts)
+                    if is_dup:
+                        print(f"    ❌ Filter 2 ({exercise_type}) Rejected (Duplicate): {text[:40]}... Reason: {dup_reason}")
+                        continue
 
-                sb.table("exercises").insert({
-                    "language_id": lang_uuid,
-                    "level_id": level_uuid,
-                    "topic_id": topic_id,
-                    "type": exercise_type,
-                    "native_language": "fa",
-                    "content_json": content_json,
-                    "quality_score": score,
-                    "generation_model": "gpt-4o",
-                    "is_approved": True,
-                }).execute()
+                    # Build type-specific content_json matching contract
+                    if exercise_type == "multiple_choice":
+                        content_json = {
+                            "question": ex.get("question", text),
+                            "options": ex.get("options", []),
+                            "correct_answer": ex.get("correct_answer", ""),
+                            "explanation": ex.get("explanation", ""),
+                        }
+                    elif exercise_type == "fill_blank":
+                        content_json = {
+                            "sentence": ex.get("sentence", text),
+                            "correct_answer": ex.get("correct_answer", ""),
+                            "acceptable_answers": ex.get("acceptable_answers", []),
+                            "explanation": ex.get("explanation", ""),
+                        }
+                    elif exercise_type == "sentence_order":
+                        content_json = {
+                            "target_sentence": ex.get("target_sentence", text),
+                            "explanation": ex.get("explanation", ""),
+                        }
+                    elif exercise_type == "error_correction":
+                        content_json = {
+                            "incorrect_sentence": ex.get("incorrect_sentence", ""),
+                            "correct_sentence": ex.get("correct_sentence", text),
+                            "explanation": ex.get("explanation", ""),
+                        }
+                    elif exercise_type == "translation":
+                        content_json = {
+                            "source_sentence": ex.get("source_sentence", ""),
+                            "target_sentence": ex.get("target_sentence", text),
+                            "explanation": ex.get("explanation", ""),
+                        }
+                    else:
+                        content_json = ex
 
-                existing_texts.add(text)
-                approved_count += 1
-                total_created += 1
-                print(f"    ✅ Saved '{exercise_type}' [{approved_count}/{needed}] (Score: {score:.2f}): {text[:50]}")
+                    sb.table("exercises").insert({
+                        "language_id": lang_uuid,
+                        "level_id": level_uuid,
+                        "topic_id": topic_id,
+                        "type": exercise_type,
+                        "native_language": "fa",
+                        "content_json": content_json,
+                        "quality_score": score,
+                        "generation_model": "gpt-4o",
+                        "is_approved": True,
+                    }).execute()
 
-                await asyncio.sleep(0.3)
+                    existing_texts.add(text)
+                    approved_count += 1
+                    total_created += 1
+                    print(f"    ✅ Saved '{exercise_type}' [{approved_count}/{needed}] (Score: {score:.2f}): {text[:50]}")
+
+                    await asyncio.sleep(0.3)
 
     print("\n" + "=" * 70)
     print(f"🎉 Pipeline Completed! Created {total_created} new verified exercises across 5 types.")
