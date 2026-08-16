@@ -113,6 +113,15 @@ TOPIC_LABELS = {
 }
 
 
+LEVEL_DEPTH_INSTRUCTIONS = {
+    "A1": "Write explanations in simple native-language sentences, avoid grammar-teaching jargon (no 'subjunctive', no 'perfect aspect' terminology) — explain the pattern in plain terms.",
+    "A2": "Write explanations in simple native-language sentences, avoid grammar-teaching jargon (no 'subjunctive', no 'perfect aspect' terminology) — explain the pattern in plain terms.",
+    "B1": "Explanations may use standard grammar terminology, and must explicitly mention at least one common exception or irregular case for the topic.",
+    "B2": "Explanations may use standard grammar terminology, and must explicitly mention at least one common exception or irregular case for the topic.",
+    "C1": "Explanations must cover nuance, register (formal vs informal usage), and at least one edge case where the 'simple rule' taught at A1/A2 does not hold.",
+    "C2": "Explanations must cover nuance, register (formal vs informal usage), and at least one edge case where the 'simple rule' taught at A1/A2 does not hold.",
+}
+
 # ── Grammar Content Generation ─────────────────────────────────────────────────
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
@@ -122,6 +131,8 @@ async def generate_grammar_content(topic_code: str, native_language: str, level_
     for a given topic in the user's native language for the given CEFR level.
     """
     topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+    level_key = level_code.upper().strip()
+    depth_instruction = LEVEL_DEPTH_INSTRUCTIONS.get(level_key, LEVEL_DEPTH_INSTRUCTIONS["A1"])
 
     lang_instruction = {
         "fa": "Write the explanation, comparison, tips and common mistakes in Persian (Farsi). Keep target example sentences in English.",
@@ -136,6 +147,7 @@ Topic: {topic_label}
 CEFR Level: {level_code}
 Native Language for Explanations: {native_language}
 Instruction: {lang_instruction}
+Level Depth Requirement: {depth_instruction}
 
 Create grammar content in the following JSON format ONLY. Return ONLY valid JSON, no other text:
 
@@ -166,7 +178,7 @@ Create grammar content in the following JSON format ONLY. Return ONLY valid JSON
 }}
 
 Requirements:
-1. Explanation MUST contain at least 3 complete sentences explaining the grammar rules thoroughly for level {level_code}.
+1. Explanation MUST contain at least 3 complete sentences explaining the grammar rules thoroughly for level {level_code}. Depth: {depth_instruction}
 2. Comparison MUST be stored in its own field, explaining exact structural differences between English and {native_language}.
 3. MUST provide EXACTLY 8 detailed example items in examples_json, each with target, native, and breakdown fields filled.
 4. MUST provide MINIMUM 3 distinct items in tips_json; the 3 tips MUST NOT overlap or restate each other.
