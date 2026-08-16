@@ -28,6 +28,8 @@ app/android/gradlew.bat
 app/android/local.properties
 app/android/GeneratedPluginRegistrant.java
 app/android/key.properties
+app/android/app/key.properties
+**/key.properties
 app/**/*.keystore
 app/**/*.jks
 app/ios/.symlinks/
