@@ -230,8 +230,16 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
 
   Widget _buildExplanationTab() {
     final isRtl = AppConstants.rtlLanguages.contains(_nativeLanguage);
-    final explanation = _content?['explanation'] as String? ?? '';
-    final comparison = (_content?['comparison'] ?? _content?['native_comparison']) as String? ?? '';
+    String explanation = _content?['explanation'] as String? ?? '';
+    String comparison = (_content?['comparison'] ?? _content?['native_comparison']) as String? ?? '';
+
+    // Auto-extract comparison if DB comparison column is empty but embedded in explanation
+    if (comparison.trim().isEmpty && explanation.contains('📌 تفاوت با زبان مادری:')) {
+      final parts = explanation.split('📌 تفاوت با زبان مادری:');
+      explanation = parts[0].trim();
+      comparison = parts[1].trim();
+    }
+
     final examples = ((_content?['examples_json'] ?? _content?['examples']) as List?)?.cast<dynamic>() ?? [];
     final tips = ((_content?['tips_json'] ?? _content?['tips']) as List?)?.cast<dynamic>() ?? [];
     final mistakes = ((_content?['common_mistakes_json'] ?? _content?['common_mistakes']) as List?)?.cast<dynamic>() ?? [];
@@ -256,22 +264,21 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
             const SizedBox(height: 20),
           ],
 
-          // Native Language Grammar Comparison & 2 Examples (For A1-A2)
-          if (comparison.isNotEmpty || widget.levelId == 'A1' || widget.levelId == 'A2') ...[
+          // Native Language Grammar Comparison & Examples
+          if (comparison.isNotEmpty) ...[
             _SectionHeader(
               title: _nativeLanguage == 'fa'
-                  ? 'تفاوت گرامر با زبان مادری (مقایسه ۲ مثال)'
-                  : 'Grammar Difference with Native Language (2 Examples)',
+                  ? 'تفاوت گرامر با زبان مادری'
+                  : 'Grammar Difference with Native Language',
               icon: Icons.compare_arrows_rounded,
               color: AppTheme.primaryTeal,
             ),
             const SizedBox(height: 12),
-            if (comparison.isNotEmpty)
-              _ContentCard(
-                text: comparison,
-                levelColor: AppTheme.primaryTeal,
-                isRtl: isRtl,
-              ),
+            _ContentCard(
+              text: comparison,
+              levelColor: AppTheme.primaryTeal,
+              isRtl: isRtl,
+            ),
             if (examples.isNotEmpty) ...[
               const SizedBox(height: 12),
               ...examples.take(2).map((ex) => _ExampleCard(

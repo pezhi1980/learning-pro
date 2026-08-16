@@ -75,19 +75,7 @@ CREATE TABLE IF NOT EXISTS grammar_content (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 6. Grammar Contrast Table ──────────────────────────────
-CREATE TABLE IF NOT EXISTS grammar_contrast (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    topic_id UUID REFERENCES grammar_topics(id) ON DELETE CASCADE,
-    target_language TEXT DEFAULT 'en',
-    native_language TEXT DEFAULT 'fa',
-    differences JSONB DEFAULT '[]'::jsonb,
-    tips JSONB DEFAULT '[]'::jsonb,
-    examples JSONB DEFAULT '[]'::jsonb,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- ── 7. Vocabulary Table ────────────────────────────────────
+-- ── 6. Vocabulary Table ────────────────────────────────────
 CREATE TABLE IF NOT EXISTS vocabulary (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     language_id UUID REFERENCES languages(id) ON DELETE CASCADE,

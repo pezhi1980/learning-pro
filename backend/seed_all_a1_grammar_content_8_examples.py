@@ -1083,6 +1083,7 @@ def seed_grammar_content():
             if "comparison" in str(e):
                 payload_fallback = dict(payload)
                 del payload_fallback["comparison"]
+                payload_fallback["explanation"] = content_data["explanation"] + "\n\n📌 تفاوت با زبان مادری:\n" + content_data["comparison"]
                 if existing.data:
                     sb.table("grammar_content").update(payload_fallback).eq("id", existing.data["id"]).execute()
                 else:
