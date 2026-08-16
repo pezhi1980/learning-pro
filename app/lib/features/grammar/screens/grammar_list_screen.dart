@@ -389,6 +389,37 @@ class _TabItem extends StatelessWidget {
   }
 }
 
+const Map<String, String> _topicTitles = {
+  'verb_to_be_present': 'Verb to Be (Present Tense)',
+  'personal_pronouns': 'Personal Pronouns',
+  'indefinite_articles': 'Indefinite Articles (a / an)',
+  'definite_article': 'Definite Article (the)',
+  'plural_nouns': 'Plural Nouns (Regular & Irregular)',
+  'possessive_adjectives': 'Possessive Adjectives',
+  'demonstratives': 'Demonstratives (this, that, these, those)',
+  'present_simple_affirmative': 'Present Simple (Affirmative)',
+  'present_simple_negative': 'Present Simple (Negative)',
+  'present_simple_questions': 'Present Simple (Questions)',
+  'have_got': 'Have got / Has got',
+  'can_ability': 'Modal Verb: Can (Ability)',
+  'imperative': 'Imperative Sentences',
+  'there_is_there_are': 'There is / There are',
+  'basic_prepositions_place': 'Prepositions of Place (in, on, at)',
+  'adjectives_basic': 'Basic Adjectives & Position',
+  'numbers_and_quantity': 'Numbers & Quantity (some / any)',
+  'wh_questions': 'Question Words (Who, What, Where, When, Why)',
+  'object_pronouns': 'Object Pronouns (me, him, her, us, them)',
+  'like_and_want': 'Expressing Likes & Desires (like / want)',
+};
+
+String _formatTopicTitle(String topicCode) {
+  if (_topicTitles.containsKey(topicCode)) return _topicTitles[topicCode]!;
+  return topicCode
+      .split('_')
+      .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
+      .join(' ');
+}
+
 // ── Grammar Topic Card ─────────────────────────────────────
 
 class _GrammarTopicCard extends StatelessWidget {
@@ -406,7 +437,11 @@ class _GrammarTopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = topic['title'] as String? ?? 'Topic';
+    final topicCode = topic['topic_code'] as String? ?? '';
+    final rawTitle = topic['title'] as String?;
+    final title = (rawTitle != null && rawTitle.isNotEmpty && rawTitle != 'Topic')
+        ? rawTitle
+        : _formatTopicTitle(topicCode);
     final description = topic['description'] as String? ?? '';
     final orderIndex = topic['order_index'] as int? ?? 0;
     final exerciseCount = topic['exercise_count'] as int? ?? 0;

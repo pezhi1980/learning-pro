@@ -131,7 +131,7 @@ class _ErrorCorrectionScreenState extends State<ErrorCorrectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
+      backgroundColor: AppTheme.darkBg,
       body: SafeArea(
         child: Column(
           children: [

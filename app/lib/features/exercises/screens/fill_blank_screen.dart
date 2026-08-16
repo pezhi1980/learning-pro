@@ -131,7 +131,7 @@ class _FillBlankScreenState extends State<FillBlankScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
+      backgroundColor: AppTheme.darkBg,
       body: SafeArea(
         child: Column(
           children: [

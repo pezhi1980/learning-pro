@@ -175,7 +175,7 @@ class _ExamScreenState extends State<ExamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
+      backgroundColor: AppTheme.darkBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -345,7 +345,7 @@ class _ExamScreenState extends State<ExamScreen> {
           const Text('Reorder words to form a correct sentence:', style: TextStyle(fontFamily: 'Outfit', fontSize: 14, color: AppTheme.darkTextSub)),
           const SizedBox(height: 12),
           Container(
-            minHeight: 60,
+            constraints: const BoxConstraints(minHeight: 60),
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: AppTheme.darkCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppTheme.darkCardBorder)),

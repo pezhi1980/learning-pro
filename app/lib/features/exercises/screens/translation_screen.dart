@@ -131,7 +131,7 @@ class _TranslationScreenState extends State<TranslationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBackground,
+      backgroundColor: AppTheme.darkBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -203,9 +203,9 @@ class _TranslationScreenState extends State<TranslationScreen> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.g_translate_rounded, size: 20, color: AppTheme.secondaryBlue),
+                    Icon(Icons.g_translate_rounded, size: 20, color: AppTheme.colorInfo),
                     SizedBox(width: 8),
-                    Text('Translate into English:', style: TextStyle(fontFamily: 'Outfit', fontSize: 13, color: AppTheme.secondaryBlue, fontWeight: FontWeight.w600)),
+                    Text('Translate into English:', style: TextStyle(fontFamily: 'Outfit', fontSize: 13, color: AppTheme.colorInfo, fontWeight: FontWeight.w600)),
                   ],
                 ),
                 const SizedBox(height: 16),
