@@ -167,6 +167,13 @@ Requirements:
     return content
 
 
+SCANDINAVIAN_CONTENT_RULE = """CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:
+    Countries: Denmark, Sweden, Norway, Finland, Iceland
+    Cities: Copenhagen, Aarhus, Odense, Stockholm, Gothenburg, Malmö, Oslo, Bergen, Trondheim, Helsinki, Tampere, Reykjavik
+    Nationalities: Danish, Swedish, Norwegian, Finnish, Icelandic
+    Do not default to Paris, London, New York, or any other non-Scandinavian location under any circumstances."""
+
+
 # ── Multiple Choice Exercise Generation ───────────────────────────────────────
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
@@ -177,7 +184,6 @@ async def generate_multiple_choice_exercises(
 ) -> list[dict]:
     """
     Generate multiple choice exercises for a given grammar topic.
-    Generates more than needed (count=8) to have buffer after filtering.
     """
     topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
 
@@ -216,11 +222,237 @@ STRICT RULES:
 7. Do NOT use complex vocabulary — A1 level only
 8. Sentences should reflect real everyday situations
 9. Do NOT copy from textbooks — create original content
-10. CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:
-    Countries: Denmark, Sweden, Norway, Finland, Iceland
-    Cities: Copenhagen, Aarhus, Odense, Stockholm, Gothenburg, Malmö, Oslo, Bergen, Trondheim, Helsinki, Tampere, Reykjavik
-    Nationalities: Danish, Swedish, Norwegian, Finnish, Icelandic
-    Do not default to Paris, London, New York, or any other non-Scandinavian location under any circumstances."""
+10. {SCANDINAVIAN_CONTENT_RULE}"""
+
+    response = await client.chat.completions.create(
+        model=GENERATION_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.8,
+    )
+
+    data = json.loads(response.choices[0].message.content)
+    return data.get("exercises", [])
+
+
+# ── Fill in the Blank Exercise Generation ──────────────────────────────────────
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def generate_fill_blank_exercises(
+    topic_code: str,
+    native_language: str,
+    count: int = 8,
+) -> list[dict]:
+    """
+    Generate fill-in-the-blank exercises for a given grammar topic.
+    """
+    topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+
+    explanation_lang = {
+        "fa": "Persian (Farsi)",
+        "da": "Danish (Dansk)",
+        "en": "English",
+        "ar": "Arabic",
+    }.get(native_language, "English")
+
+    prompt = f"""You are an expert English language test designer creating A1 CEFR fill-in-the-blank exercises.
+
+Grammar Topic: {topic_label}
+Explanation Language: {explanation_lang}
+
+Generate exactly {count} unique fill-in-the-blank questions. Return ONLY valid JSON in this format:
+
+{{
+  "exercises": [
+    {{
+      "sentence": "<sentence containing a single ___ blank, no options provided>",
+      "correct_answer": "<the exact word or phrase that correctly fills the blank>",
+      "acceptable_answers": ["<minor valid variant e.g. contraction if applicable, otherwise empty list []>"],
+      "explanation": "<brief explanation in {explanation_lang} of why this fills the blank>"
+    }}
+  ]
+}}
+
+STRICT RULES:
+1. All questions must test ONLY the topic: {topic_label}
+2. Questions must be appropriate for CEFR A1 level (simple vocabulary, short sentences)
+3. The sentence MUST contain a single '___' blank representing the missing grammar element.
+4. correct_answer MUST be the exact word/phrase filling the blank.
+5. acceptable_answers MUST contain minor valid variants (e.g. ['don\\'t'] for 'do not') or be an empty list [].
+6. No question should repeat similar patterns — make them diverse.
+7. Do NOT use complex vocabulary — A1 level only.
+8. Sentences should reflect real everyday situations.
+9. Do NOT copy from textbooks — create original content.
+10. {SCANDINAVIAN_CONTENT_RULE}"""
+
+    response = await client.chat.completions.create(
+        model=GENERATION_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.8,
+    )
+
+    data = json.loads(response.choices[0].message.content)
+    return data.get("exercises", [])
+
+
+# ── Sentence Order Exercise Generation ────────────────────────────────────────
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def generate_sentence_order_exercises(
+    topic_code: str,
+    native_language: str,
+    count: int = 8,
+) -> list[dict]:
+    """
+    Generate sentence ordering exercises for a given grammar topic.
+    """
+    topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+
+    explanation_lang = {
+        "fa": "Persian (Farsi)",
+        "da": "Danish (Dansk)",
+        "en": "English",
+        "ar": "Arabic",
+    }.get(native_language, "English")
+
+    prompt = f"""You are an expert English language test designer creating A1 CEFR sentence ordering exercises.
+
+Grammar Topic: {topic_label}
+Explanation Language: {explanation_lang}
+
+Generate exactly {count} unique sentence ordering exercises. Return ONLY valid JSON in this format:
+
+{{
+  "exercises": [
+    {{
+      "target_sentence": "<a complete, grammatically correct English sentence that clearly demonstrates the target word order>",
+      "explanation": "<brief explanation in {explanation_lang} of why this word order is correct>"
+    }}
+  ]
+}}
+
+STRICT RULES:
+1. All target sentences must test ONLY the word order and structure of topic: {topic_label}
+2. Sentences must be appropriate for CEFR A1 level (4 to 8 words long, simple vocabulary).
+3. target_sentence MUST be grammatically flawless and natural in English.
+4. No sentence should repeat similar patterns — make them diverse.
+5. Do NOT copy from textbooks — create original content.
+6. {SCANDINAVIAN_CONTENT_RULE}"""
+
+    response = await client.chat.completions.create(
+        model=GENERATION_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.8,
+    )
+
+    data = json.loads(response.choices[0].message.content)
+    return data.get("exercises", [])
+
+
+# ── Error Correction Exercise Generation ──────────────────────────────────────
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def generate_error_correction_exercises(
+    topic_code: str,
+    native_language: str,
+    count: int = 8,
+) -> list[dict]:
+    """
+    Generate error correction exercises for a given grammar topic.
+    """
+    topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+
+    explanation_lang = {
+        "fa": "Persian (Farsi)",
+        "da": "Danish (Dansk)",
+        "en": "English",
+        "ar": "Arabic",
+    }.get(native_language, "English")
+
+    prompt = f"""You are an expert English language test designer creating A1 CEFR error correction exercises.
+
+Grammar Topic: {topic_label}
+Explanation Language: {explanation_lang}
+
+Generate exactly {count} unique error correction exercises. Return ONLY valid JSON in this format:
+
+{{
+  "exercises": [
+    {{
+      "incorrect_sentence": "<sentence containing EXACTLY ONE clear grammar error related to {topic_label}>",
+      "correct_sentence": "<the exact corrected English sentence>",
+      "explanation": "<brief explanation in {explanation_lang} pointing out the specific error and why the correction is right>"
+    }}
+  ]
+}}
+
+STRICT RULES:
+1. The error in incorrect_sentence MUST be a GRAMMAR error directly related to: {topic_label}.
+2. Do NOT use spelling or punctuation errors — the error MUST be a pedagogical grammar mistake.
+3. incorrect_sentence MUST contain EXACTLY ONE error.
+4. correct_sentence MUST be the exact, fully corrected English sentence.
+5. Sentences must be appropriate for CEFR A1 level (simple vocabulary, short sentences).
+6. No exercise should repeat similar patterns — make them diverse.
+7. Do NOT copy from textbooks — create original content.
+8. {SCANDINAVIAN_CONTENT_RULE}"""
+
+    response = await client.chat.completions.create(
+        model=GENERATION_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.8,
+    )
+
+    data = json.loads(response.choices[0].message.content)
+    return data.get("exercises", [])
+
+
+# ── Translation Exercise Generation ───────────────────────────────────────────
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def generate_translation_exercises(
+    topic_code: str,
+    native_language: str,
+    count: int = 8,
+) -> list[dict]:
+    """
+    Generate translation exercises for a given grammar topic.
+    """
+    topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+
+    explanation_lang = {
+        "fa": "Persian (Farsi)",
+        "da": "Danish (Dansk)",
+        "en": "English",
+        "ar": "Arabic",
+    }.get(native_language, "English")
+
+    prompt = f"""You are an expert English language test designer creating A1 CEFR translation exercises.
+
+Grammar Topic: {topic_label}
+Native Language: {explanation_lang}
+
+Generate exactly {count} unique translation exercises. Return ONLY valid JSON in this format:
+
+{{
+  "exercises": [
+    {{
+      "source_sentence": "<sentence in {explanation_lang} to be translated>",
+      "target_sentence": "<the accurate English translation demonstrating {topic_label}>",
+      "explanation": "<key translation/grammar note in {explanation_lang}>"
+    }}
+  ]
+}}
+
+STRICT RULES:
+1. source_sentence MUST be in natural {explanation_lang}.
+2. target_sentence MUST be the accurate English translation testing topic: {topic_label}.
+3. Sentences must be appropriate for CEFR A1 level (simple vocabulary, short sentences).
+4. No exercise should repeat similar patterns — make them diverse.
+5. Do NOT copy from textbooks — create original content.
+6. {SCANDINAVIAN_CONTENT_RULE}"""
 
     response = await client.chat.completions.create(
         model=GENERATION_MODEL,
@@ -236,46 +468,107 @@ STRICT RULES:
 # ── Filter 1: Quality Validation ──────────────────────────────────────────────
 
 @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=1, max=5))
-async def filter1_quality_check(exercise: dict, topic_code: str) -> tuple[bool, float, str]:
+async def filter1_quality_check(
+    exercise: dict,
+    topic_code: str,
+    exercise_type: str = "multiple_choice",
+) -> tuple[bool, float, str]:
     """
     Filter 1: Validate exercise quality using GPT-4o-mini.
     Returns: (passed, quality_score 0-1, reason)
+    Type-aware: evaluates specific criteria per exercise_type.
     """
     topic_label = TOPIC_LABELS.get(topic_code, topic_code)
 
-    prompt = f"""You are a strict English language education quality reviewer.
+    if exercise_type == "fill_blank":
+        checks_json = """{
+    "is_a1_level": true/false,
+    "grammar_correct": true/false,
+    "correct_answer_valid": true/false,
+    "sentence_clear": true/false,
+    "blank_unambiguous": true/false
+  }"""
+        fail_conditions = """- The sentence is too hard for A1 level
+- The English grammar is wrong
+- The correct_answer doesn't properly fill the blank
+- The sentence or blank position is ambiguous or confusing
+- The topic being tested is NOT """ + topic_label
+        exercise_repr = f"Sentence: {exercise.get('sentence')}\nCorrect Answer: {exercise.get('correct_answer')}\nAcceptable Answers: {exercise.get('acceptable_answers')}\nExplanation: {exercise.get('explanation')}"
 
-Review this A1 CEFR multiple choice exercise for the topic: {topic_label}
+    elif exercise_type == "sentence_order":
+        checks_json = """{
+    "is_a1_level": true/false,
+    "grammar_correct": true/false,
+    "sentence_natural": true/false,
+    "word_order_teaches_topic": true/false
+  }"""
+        fail_conditions = """- The sentence is too hard for A1 level
+- The English grammar or word order is wrong
+- The sentence sounds unnatural
+- The sentence does NOT effectively teach or test the topic: """ + topic_label
+        exercise_repr = f"Target Sentence: {exercise.get('target_sentence')}\nExplanation: {exercise.get('explanation')}"
 
-Exercise:
-Question: {exercise.get('question')}
-Options: {exercise.get('options')}
-Correct Answer: {exercise.get('correct_answer')}
-Explanation: {exercise.get('explanation')}
+    elif exercise_type == "error_correction":
+        checks_json = """{
+    "is_a1_level": true/false,
+    "error_is_relevant_to_topic": true/false,
+    "exactly_one_error": true/false,
+    "correction_is_accurate": true/false
+  }"""
+        fail_conditions = """- The sentence is too hard for A1 level
+- The error is NOT related to the topic: """ + topic_label + """
+- There is more than one error, or no clear error at all
+- The correction provided is inaccurate or still contains errors
+- The error is a minor spelling/punctuation mistake rather than a grammar error"""
+        exercise_repr = f"Incorrect Sentence: {exercise.get('incorrect_sentence')}\nCorrect Sentence: {exercise.get('correct_sentence')}\nExplanation: {exercise.get('explanation')}"
 
-Evaluate on these criteria and return ONLY valid JSON:
-{{
-  "passed": true/false,
-  "score": <float 0.0 to 1.0>,
-  "checks": {{
+    elif exercise_type == "translation":
+        checks_json = """{
+    "is_a1_level": true/false,
+    "translation_accurate": true/false,
+    "natural_in_both_languages": true/false
+  }"""
+        fail_conditions = """- The sentence is too hard for A1 level
+- The translation between source and target sentence is inaccurate
+- Either the source or target sentence sounds unnatural
+- The sentence does NOT test the topic: """ + topic_label
+        exercise_repr = f"Source Sentence: {exercise.get('source_sentence')}\nTarget Sentence: {exercise.get('target_sentence')}\nExplanation: {exercise.get('explanation')}"
+
+    else:  # multiple_choice (default)
+        checks_json = """{
     "is_a1_level": true/false,
     "grammar_correct": true/false,
     "correct_answer_valid": true/false,
     "question_clear": true/false,
     "distractors_plausible": true/false
-  }},
-  "reason": "<brief reason if failed, or 'OK' if passed>"
-}}
-
-FAIL if ANY of these:
-- The question is too hard for A1 level
+  }"""
+        fail_conditions = """- The question is too hard for A1 level
 - The English grammar in the question or options is wrong
 - The correct_answer doesn't match any option exactly
 - The question is ambiguous or confusing
 - The distractors are obviously wrong (making it too easy)
-- The topic being tested is NOT {topic_label}
+- The topic being tested is NOT """ + topic_label
+        exercise_repr = f"Question: {exercise.get('question')}\nOptions: {exercise.get('options')}\nCorrect Answer: {exercise.get('correct_answer')}\nExplanation: {exercise.get('explanation')}"
 
-PASS threshold: all 5 checks must be true AND score >= 0.75"""
+    prompt = f"""You are a strict English language education quality reviewer.
+
+Review this A1 CEFR {exercise_type} exercise for the topic: {topic_label}
+
+Exercise Details:
+{exercise_repr}
+
+Evaluate on these criteria and return ONLY valid JSON:
+{{
+  "passed": true/false,
+  "score": <float 0.0 to 1.0>,
+  "checks": {checks_json},
+  "reason": "<brief reason if failed, or 'OK' if passed>"
+}}
+
+FAIL if ANY of these:
+{fail_conditions}
+
+PASS threshold: all checks in the checks object must be true AND score >= 0.75"""
 
     response = await client.chat.completions.create(
         model=FILTER_MODEL,
