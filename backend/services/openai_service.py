@@ -1,14 +1,56 @@
-# backend/services/openai_service.py
-
 import json
 import os
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+load_dotenv()
+
+def get_openai_client() -> AsyncOpenAI:
+    return AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = get_openai_client()
 
 GENERATION_MODEL = "gpt-4o"
 FILTER_MODEL = "gpt-4o-mini"
+
+# ── 5 Real Exercise Types & Content Contracts ─────────────────────────────────
+EXERCISE_TYPES = [
+    "multiple_choice",
+    "fill_blank",
+    "sentence_order",
+    "error_correction",
+    "translation",
+]
+
+EXERCISE_CONTENT_CONTRACTS = {
+    "multiple_choice": {
+        "question": "str (sentence with blank OR direct question)",
+        "options": "list[str] (exactly 4 options)",
+        "correct_answer": "str (must match one option exactly)",
+        "explanation": "str (why, in learner's native language)",
+    },
+    "fill_blank": {
+        "sentence": "str (sentence with a single ___ blank, no options given)",
+        "correct_answer": "str (exact word/phrase that fills the blank)",
+        "acceptable_answers": "list[str] (minor valid variants, e.g. contractions)",
+        "explanation": "str (why, in learner's native language)",
+    },
+    "sentence_order": {
+        "target_sentence": "str (correct, complete sentence to be reassembled)",
+        "explanation": "str (why this word order is correct, in native language)",
+    },
+    "error_correction": {
+        "incorrect_sentence": "str (sentence containing exactly one grammar error)",
+        "correct_sentence": "str (the corrected version)",
+        "explanation": "str (why it was wrong, in native language)",
+    },
+    "translation": {
+        "source_sentence": "str (sentence in learner's native language)",
+        "target_sentence": "str (correct English translation)",
+        "explanation": "str (key translation/grammar note, in native language)",
+    },
+}
 
 
 # ── A1 Grammar Topics (CEFR standard) ─────────────────────────────────────────
@@ -106,9 +148,15 @@ Requirements:
 - Comparison must highlight exact structural differences between English and {native_language} (e.g. word order, verb position, articles)
 - Provide at least 2 clear examples illustrating the native language contrast in breakdown
 - Do NOT copy from any textbook — create original content
-- Follow CEFR standards exactly"""
+- Follow CEFR standards exactly
+- CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:
+  Countries: Denmark, Sweden, Norway, Finland, Iceland
+  Cities: Copenhagen, Aarhus, Odense, Stockholm, Gothenburg, Malmö, Oslo, Bergen, Trondheim, Helsinki, Tampere, Reykjavik
+  Nationalities: Danish, Swedish, Norwegian, Finnish, Icelandic
+  Do not default to Paris, London, New York, or any other non-Scandinavian location under any circumstances."""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -135,6 +183,7 @@ async def generate_multiple_choice_exercises(
 
     explanation_lang = {
         "fa": "Persian (Farsi)",
+        "da": "Danish (Dansk)",
         "en": "English",
         "ar": "Arabic",
     }.get(native_language, "English")
@@ -166,7 +215,12 @@ STRICT RULES:
 6. No question should repeat similar patterns — make them diverse
 7. Do NOT use complex vocabulary — A1 level only
 8. Sentences should reflect real everyday situations
-9. Do NOT copy from textbooks — create original content"""
+9. Do NOT copy from textbooks — create original content
+10. CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:
+    Countries: Denmark, Sweden, Norway, Finland, Iceland
+    Cities: Copenhagen, Aarhus, Odense, Stockholm, Gothenburg, Malmö, Oslo, Bergen, Trondheim, Helsinki, Tampere, Reykjavik
+    Nationalities: Danish, Swedish, Norwegian, Finnish, Icelandic
+    Do not default to Paris, London, New York, or any other non-Scandinavian location under any circumstances."""
 
     response = await client.chat.completions.create(
         model=GENERATION_MODEL,
