@@ -1,16 +1,19 @@
 """
-generate_all_a1_exercises.py — Run AI content generation pipeline for all 20 A1 grammar topics.
-Follows all 4 project rules:
-  1. CEFR A1 standards
-  2. 2-Filter System (Filter 1: GPT-4o-mini quality check >= 0.75, Filter 2: deduplication)
-  3. 100% Original exercises
-  4. Direct storage in Supabase DB (DB caching)
+generate_all_a1_exercises.py — Comprehensive AI Content Generation Pipeline
+Generates ALL 5 real exercise types for all 20 CEFR A1 grammar topics:
+  1. multiple_choice   (5 per topic)
+  2. fill_blank        (5 per topic)
+  3. sentence_order    (5 per topic)
+  4. error_correction  (5 per topic)
+  5. translation       (5 per topic)
+
+Total target: 25 distinct exercises per topic = 500 exercises across all 20 A1 topics.
+Enforces type-aware quality checks (Filter 1) and cross-type deduplication (Filter 2).
 """
 
 import os
 import sys
 import asyncio
-import uuid
 import logging
 
 if sys.stdout.encoding != 'utf-8':
@@ -30,19 +33,47 @@ os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 from supabase import create_client
 from services.openai_service import (
     A1_GRAMMAR_TOPICS,
-    generate_grammar_content,
+    EXERCISE_TYPES,
     generate_multiple_choice_exercises,
+    generate_fill_blank_exercises,
+    generate_sentence_order_exercises,
+    generate_error_correction_exercises,
+    generate_translation_exercises,
     filter1_quality_check,
     filter2_duplicate_check,
+    extract_comparable_text,
 )
 
 sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-QUESTIONS_PER_TOPIC = 5
+
+QUESTIONS_PER_TYPE = 5
+
+GENERATOR_FOR_TYPE = {
+    "multiple_choice": generate_multiple_choice_exercises,
+    "fill_blank": generate_fill_blank_exercises,
+    "sentence_order": generate_sentence_order_exercises,
+    "error_correction": generate_error_correction_exercises,
+    "translation": generate_translation_exercises,
+}
+
+
+def load_all_existing_texts_for_topic(topic_id: str) -> set[str]:
+    """Load core text of all existing exercises for a topic across ALL types for cross-type deduplication."""
+    res = sb.table("exercises").select("type", "content_json").eq("topic_id", topic_id).execute()
+    texts = set()
+    for row in res.data:
+        c_json = row.get("content_json") or {}
+        ex_type = row.get("type", "multiple_choice")
+        text = extract_comparable_text(ex_type, c_json)
+        if text:
+            texts.add(text)
+    return texts
+
 
 async def main():
-    print("=" * 60)
-    print("🚀 Starting A1 Quick Quiz & Practice Generation Pipeline")
-    print("=" * 60)
+    print("=" * 70)
+    print("🚀 Starting Comprehensive A1 Exercise Generation (5 Types × 20 Topics)")
+    print("=" * 70)
 
     # 1. Get Language and Level UUIDs
     lang_res = sb.table("languages").select("id").eq("code", "en").single().execute()
@@ -50,15 +81,6 @@ async def main():
 
     lang_uuid = lang_res.data["id"]
     level_uuid = level_res.data["id"]
-
-    # Load existing questions for Filter 2 deduplication
-    existing_res = sb.table("exercises").select("content_json").eq("language_id", lang_uuid).eq("level_id", level_uuid).execute()
-    existing_questions = {
-        row["content_json"].get("question", "")
-        for row in existing_res.data
-        if row.get("content_json")
-    }
-    print(f"Loaded {len(existing_questions)} existing questions for deduplication.")
 
     total_created = 0
 
@@ -80,71 +102,103 @@ async def main():
         else:
             topic_id = topic_res.data["id"]
 
-        # Check existing exercises count for this topic
-        ex_res = sb.table("exercises").select("id").eq("topic_id", topic_id).execute()
-        existing_count = len(ex_res.data)
+        # Load all existing exercise texts for this topic across ALL 5 types
+        existing_texts = load_all_existing_texts_for_topic(topic_id)
+        print(f"\n[{index}/20] Topic '{topic_code}' — Loaded {len(existing_texts)} existing exercise texts across all types.")
 
-        if existing_count >= QUESTIONS_PER_TOPIC:
-            print(f"[{index}/20] Topic '{topic_code}' already has {existing_count} questions. Skipping.")
-            continue
+        for exercise_type in EXERCISE_TYPES:
+            # Check existing count for this specific type
+            ex_res = sb.table("exercises").select("id").eq("topic_id", topic_id).eq("type", exercise_type).execute()
+            existing_count = len(ex_res.data)
 
-        needed = QUESTIONS_PER_TOPIC - existing_count
-        print(f"\n[{index}/20] Generating {needed} exercises for topic '{topic_code}' (currently has {existing_count})...")
-
-        # Generate 8 raw candidate questions (with buffer for filters)
-        raw_exercises = await generate_multiple_choice_exercises(topic_code, "fa", count=8)
-        approved_count = 0
-
-        for ex in raw_exercises:
-            if approved_count >= needed:
-                break
-
-            q_text = ex.get("question", "")
-            if not q_text:
+            if existing_count >= QUESTIONS_PER_TYPE:
+                print(f"  • Type '{exercise_type}' already has {existing_count}/{QUESTIONS_PER_TYPE} questions. Skipping.")
                 continue
 
-            # Filter 1: Quality Validation with GPT-4o-mini
-            passed_f1, score, reason = await filter1_quality_check(ex, topic_code)
-            if not passed_f1:
-                print(f"  ❌ Filter 1 Rejected ({score:.2f}): {q_text[:40]}... Reason: {reason}")
-                continue
+            needed = QUESTIONS_PER_TYPE - existing_count
+            print(f"  • Generating {needed} '{exercise_type}' exercises (currently has {existing_count})...")
 
-            # Filter 2: Deduplication
-            is_dup, dup_reason = filter2_duplicate_check(q_text, existing_questions)
-            if is_dup:
-                print(f"  ❌ Filter 2 Rejected (Duplicate): {q_text[:40]}... Reason: {dup_reason}")
-                continue
+            generator = GENERATOR_FOR_TYPE[exercise_type]
+            raw_exercises = await generator(topic_code, "fa", count=8)
+            approved_count = 0
 
-            # Passed both filters -> Save to DB
-            content_json = {
-                "question": q_text,
-                "options": ex.get("options", []),
-                "correct_answer": ex.get("correct_answer", ""),
-                "explanation": ex.get("explanation", ""),
-            }
+            for ex in raw_exercises:
+                if approved_count >= needed:
+                    break
 
-            sb.table("exercises").insert({
-                "language_id": lang_uuid,
-                "level_id": level_uuid,
-                "topic_id": topic_id,
-                "type": "multiple_choice",
-                "native_language": "fa",
-                "content_json": content_json,
-                "quality_score": score,
-                "generation_model": "gpt-4o",
-                "is_approved": True,
-            }).execute()
+                text = extract_comparable_text(exercise_type, ex)
+                if not text:
+                    continue
 
-            existing_questions.add(q_text)
-            approved_count += 1
-            total_created += 1
-            print(f"  ✅ Saved [{approved_count}/{needed}] (Score: {score:.2f}): {q_text}")
+                # Filter 1: Quality Validation (type-aware)
+                passed_f1, score, reason = await filter1_quality_check(ex, topic_code, exercise_type)
+                if not passed_f1:
+                    print(f"    ❌ Filter 1 ({exercise_type}) Rejected ({score:.2f}): {text[:40]}... Reason: {reason}")
+                    continue
 
-            await asyncio.sleep(0.3)
+                # Filter 2: Cross-type & within-type Deduplication
+                is_dup, dup_reason = filter2_duplicate_check(text, existing_texts)
+                if is_dup:
+                    print(f"    ❌ Filter 2 ({exercise_type}) Rejected (Duplicate): {text[:40]}... Reason: {dup_reason}")
+                    continue
 
-    print("\n" + "=" * 60)
-    print(f"🎉 Pipeline Completed! Created {total_created} new verified exercises.")
-    print("=" * 60)
+                # Build type-specific content_json matching contract
+                if exercise_type == "multiple_choice":
+                    content_json = {
+                        "question": ex.get("question", text),
+                        "options": ex.get("options", []),
+                        "correct_answer": ex.get("correct_answer", ""),
+                        "explanation": ex.get("explanation", ""),
+                    }
+                elif exercise_type == "fill_blank":
+                    content_json = {
+                        "sentence": ex.get("sentence", text),
+                        "correct_answer": ex.get("correct_answer", ""),
+                        "acceptable_answers": ex.get("acceptable_answers", []),
+                        "explanation": ex.get("explanation", ""),
+                    }
+                elif exercise_type == "sentence_order":
+                    content_json = {
+                        "target_sentence": ex.get("target_sentence", text),
+                        "explanation": ex.get("explanation", ""),
+                    }
+                elif exercise_type == "error_correction":
+                    content_json = {
+                        "incorrect_sentence": ex.get("incorrect_sentence", ""),
+                        "correct_sentence": ex.get("correct_sentence", text),
+                        "explanation": ex.get("explanation", ""),
+                    }
+                elif exercise_type == "translation":
+                    content_json = {
+                        "source_sentence": ex.get("source_sentence", ""),
+                        "target_sentence": ex.get("target_sentence", text),
+                        "explanation": ex.get("explanation", ""),
+                    }
+                else:
+                    content_json = ex
+
+                sb.table("exercises").insert({
+                    "language_id": lang_uuid,
+                    "level_id": level_uuid,
+                    "topic_id": topic_id,
+                    "type": exercise_type,
+                    "native_language": "fa",
+                    "content_json": content_json,
+                    "quality_score": score,
+                    "generation_model": "gpt-4o",
+                    "is_approved": True,
+                }).execute()
+
+                existing_texts.add(text)
+                approved_count += 1
+                total_created += 1
+                print(f"    ✅ Saved '{exercise_type}' [{approved_count}/{needed}] (Score: {score:.2f}): {text[:50]}")
+
+                await asyncio.sleep(0.3)
+
+    print("\n" + "=" * 70)
+    print(f"🎉 Pipeline Completed! Created {total_created} new verified exercises across 5 types.")
+    print("=" * 70)
 
 if __name__ == "__main__":
     asyncio.run(main())
