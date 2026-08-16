@@ -584,30 +584,61 @@ PASS threshold: all checks in the checks object must be true AND score >= 0.75""
     return passed, score, reason
 
 
+# ── Helper: Extract Comparable Text for Deduplication ─────────────────────────
+
+def extract_comparable_text(exercise_type: str, exercise: dict) -> str:
+    """
+    Extract the core comparable sentence from an exercise content dictionary regardless of type.
+    - multiple_choice -> question
+    - fill_blank -> sentence
+    - sentence_order -> target_sentence
+    - error_correction -> correct_sentence
+    - translation -> target_sentence
+    """
+    if exercise_type == "multiple_choice":
+        return str(exercise.get("question", "")).strip()
+    elif exercise_type == "fill_blank":
+        return str(exercise.get("sentence", "")).strip()
+    elif exercise_type == "sentence_order":
+        return str(exercise.get("target_sentence", "")).strip()
+    elif exercise_type == "error_correction":
+        return str(exercise.get("correct_sentence", "")).strip()
+    elif exercise_type == "translation":
+        return str(exercise.get("target_sentence", "")).strip()
+    else:
+        for key in ("question", "sentence", "target_sentence", "correct_sentence"):
+            val = exercise.get(key)
+            if val and isinstance(val, str) and val.strip():
+                return val.strip()
+        return str(exercise)
+
+
 # ── Filter 2: Duplicate Check (text-based) ────────────────────────────────────
 
-def filter2_duplicate_check(question: str, existing_questions: set[str]) -> tuple[bool, str]:
+def filter2_duplicate_check(text: str, existing_texts: set[str]) -> tuple[bool, str]:
     """
-    Filter 2: Check if question is too similar to existing ones.
+    Filter 2: Check if text is too similar to existing texts in the combined cross-type pool.
     Returns (is_duplicate, reason)
     Uses simple normalized text comparison.
     """
-    normalized_new = question.lower().strip().replace("  ", " ")
+    normalized_new = text.lower().strip().replace("  ", " ")
+    if not normalized_new:
+        return False, "OK"
 
-    for existing in existing_questions:
+    for existing in existing_texts:
         normalized_existing = existing.lower().strip().replace("  ", " ")
 
         # Exact match
         if normalized_new == normalized_existing:
             return True, f"Exact duplicate: '{existing[:60]}...'"
 
-        # High similarity: if > 80% of words overlap
+        # High similarity: if > 80% of words overlap for sentences with > 3 words
         new_words = set(normalized_new.split())
         existing_words = set(normalized_existing.split())
         if len(new_words) > 3 and len(existing_words) > 3:
             overlap = len(new_words & existing_words)
             similarity = overlap / max(len(new_words), len(existing_words))
             if similarity > 0.80:
-                return True, f"Too similar to existing question (similarity: {similarity:.0%})"
+                return True, f"Too similar to existing item (similarity: {similarity:.0%})"
 
     return False, "OK"
