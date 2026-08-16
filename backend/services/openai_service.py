@@ -14,6 +14,18 @@ client = get_openai_client()
 GENERATION_MODEL = "gpt-4o"
 FILTER_MODEL = "gpt-4o-mini"
 
+# ── Complete Grammar Content Requirements (Step 1 Contract) ───────────────────
+from schemas.grammar_content_schema import (
+    GrammarContentSchema,
+    GrammarContentRequirements,
+    MIN_EXPLANATION_SENTENCES,
+    MIN_EXAMPLES_COUNT,
+    MIN_TIPS_COUNT,
+    MIN_COMMON_MISTAKES_COUNT,
+)
+
+GRAMMAR_CONTENT_REQUIREMENTS = GrammarContentRequirements()
+
 # ── 5 Real Exercise Types & Content Contracts ─────────────────────────────────
 EXERCISE_TYPES = [
     "multiple_choice",
@@ -224,7 +236,8 @@ STRICT RULES:
 9. Do NOT copy from textbooks — create original content
 10. {SCANDINAVIAN_CONTENT_RULE}"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -285,7 +298,8 @@ STRICT RULES:
 9. Do NOT copy from textbooks — create original content.
 10. {SCANDINAVIAN_CONTENT_RULE}"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -340,7 +354,8 @@ STRICT RULES:
 5. Do NOT copy from textbooks — create original content.
 6. {SCANDINAVIAN_CONTENT_RULE}"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -398,7 +413,8 @@ STRICT RULES:
 7. Do NOT copy from textbooks — create original content.
 8. {SCANDINAVIAN_CONTENT_RULE}"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -454,7 +470,8 @@ STRICT RULES:
 5. Do NOT copy from textbooks — create original content.
 6. {SCANDINAVIAN_CONTENT_RULE}"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
@@ -570,7 +587,8 @@ FAIL if ANY of these:
 
 PASS threshold: all checks in the checks object must be true AND score >= 0.75"""
 
-    response = await client.chat.completions.create(
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
         model=FILTER_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},

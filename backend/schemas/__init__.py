@@ -36,6 +36,17 @@ from .lesson_schema import (
     ValidationIssue,
     ValidationResult,
 )
+from .grammar_content_schema import (
+    GrammarContentSchema,
+    GrammarContentRequirements,
+    ExampleItemSchema,
+    TipItemSchema,
+    CommonMistakeItemSchema,
+    MIN_EXPLANATION_SENTENCES,
+    MIN_EXAMPLES_COUNT,
+    MIN_TIPS_COUNT,
+    MIN_COMMON_MISTAKES_COUNT,
+)
 
 __all__ = [
     # agent_input
@@ -65,4 +76,14 @@ __all__ = [
     "ErrorType",
     "ErrorDetail",
     "BackendError",
+    # grammar_content_schema
+    "GrammarContentSchema",
+    "GrammarContentRequirements",
+    "ExampleItemSchema",
+    "TipItemSchema",
+    "CommonMistakeItemSchema",
+    "MIN_EXPLANATION_SENTENCES",
+    "MIN_EXAMPLES_COUNT",
+    "MIN_TIPS_COUNT",
+    "MIN_COMMON_MISTAKES_COUNT",
 ]
