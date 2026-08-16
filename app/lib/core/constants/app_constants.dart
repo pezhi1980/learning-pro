@@ -12,7 +12,7 @@ class AppConstants {
   // Will grow: ['en', 'fr', 'de', 'it', 'es']
 
   // Supported native languages (user's mother tongue for explanations)
-  static const List<String> nativeLanguages = ['fa', 'en'];
+  static const List<String> nativeLanguages = ['fa', 'da', 'en', 'ar'];
   // Will grow: ['fa', 'en', 'ar', 'fr', 'de', 'it', 'es']
 
   // RTL languages

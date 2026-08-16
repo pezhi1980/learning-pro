@@ -57,7 +57,7 @@ class _SentenceOrderScreenState extends State<SentenceOrderScreen> {
       final rawData = await SupabaseService.getExercises(
         languageId: widget.languageId,
         levelId: widget.levelId,
-        type: 'multiple_choice',
+        type: 'sentence_order',
         nativeLanguage: 'fa',
         topicId: widget.topicId,
         limit: 5,
@@ -67,25 +67,22 @@ class _SentenceOrderScreenState extends State<SentenceOrderScreen> {
 
       for (final row in rawData) {
         final content = row['content_json'] as Map<String, dynamic>? ?? {};
-        final qText = content['question'] as String? ?? '';
-        final correctAns = content['correct_answer'] as String? ?? '';
+        final fullSentence = (content['target_sentence'] as String? ?? '').trim();
         final explanation = content['explanation'] as String? ?? '';
 
-        // Derive target sentence and words from exercise content
-        String fullSentence = qText.contains('___')
-            ? qText.replaceFirst('___', correctAns)
-            : "$qText $correctAns";
+        if (fullSentence.isNotEmpty) {
+          final cleanText = fullSentence.replaceAll(RegExp(r"[^\w\s']"), '').trim();
+          final words = cleanText.split(RegExp(r'\s+'));
 
-        fullSentence = fullSentence.replaceAll(RegExp(r"[^\w\s']"), '').trim();
-        final words = fullSentence.split(RegExp(r'\s+'));
-
-        if (words.length >= 3) {
-          final scrambled = List<String>.from(words)..shuffle();
-          parsed.add({
-            'words': scrambled,
-            'target_sentence': fullSentence,
-            'explanation': explanation,
-          });
+          if (words.length >= 2) {
+            final scrambled = List<String>.from(words)..shuffle();
+            parsed.add({
+              'words': scrambled,
+              'target_sentence': cleanText.isNotEmpty ? cleanText : fullSentence,
+              'raw_sentence': fullSentence,
+              'explanation': explanation,
+            });
+          }
         }
       }
 

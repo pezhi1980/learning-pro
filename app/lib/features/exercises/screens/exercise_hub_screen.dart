@@ -7,6 +7,8 @@ import '../../../core/theme/app_theme.dart';
 import 'multiple_choice_screen.dart';
 import 'sentence_order_screen.dart';
 import 'error_correction_screen.dart';
+import 'fill_blank_screen.dart';
+import 'translation_screen.dart';
 
 class ExerciseHubScreen extends StatefulWidget {
   final String languageId;
@@ -43,6 +45,8 @@ class _ExerciseHubScreenState extends State<ExerciseHubScreen> {
     {'title': 'Multiple Choice', 'icon': '📝'},
     {'title': 'Sentence Ordering', 'icon': '🧩'},
     {'title': 'Error Correction', 'icon': '🔍'},
+    {'title': 'Fill in the Blank', 'icon': '✏️'},
+    {'title': 'Translation', 'icon': '🌐'},
   ];
 
   @override
@@ -156,6 +160,7 @@ class _ExerciseHubScreenState extends State<ExerciseHubScreen> {
                       languageId: widget.languageId,
                       levelId: widget.levelId,
                       topicId: widget.topicId,
+                      mode: ExerciseMode.practice,
                     ),
                     SentenceOrderScreen(
                       languageId: widget.languageId,
@@ -163,6 +168,16 @@ class _ExerciseHubScreenState extends State<ExerciseHubScreen> {
                       topicId: widget.topicId,
                     ),
                     ErrorCorrectionScreen(
+                      languageId: widget.languageId,
+                      levelId: widget.levelId,
+                      topicId: widget.topicId,
+                    ),
+                    FillBlankScreen(
+                      languageId: widget.languageId,
+                      levelId: widget.levelId,
+                      topicId: widget.topicId,
+                    ),
+                    TranslationScreen(
                       languageId: widget.languageId,
                       levelId: widget.levelId,
                       topicId: widget.topicId,

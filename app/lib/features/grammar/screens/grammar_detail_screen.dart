@@ -559,7 +559,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () => context.push(
-                '/exercises/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}',
+                '/exercises/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}&mode=practice',
               ),
               icon: const Icon(Icons.fitness_center_rounded, size: 18),
               label: const Text('Practice'),
@@ -575,7 +575,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => context.push(
-                '/exercises/mc/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}',
+                '/exercises/mc/${widget.languageId}/${widget.levelId}?topicId=${widget.topicId}&mode=quiz',
               ),
               icon: const Icon(Icons.quiz_rounded, size: 18),
               label: const Text('Quick Quiz'),
@@ -595,7 +595,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
 
   String _nativeLangFlag() {
     const flags = {
-      'fa': '🇮🇷', 'en': '🇬🇧', 'ar': '🇸🇦',
+      'fa': '🇮🇷', 'da': '🇩🇰', 'en': '🇬🇧', 'ar': '🇸🇦',
       'fr': '🇫🇷', 'de': '🇩🇪', 'it': '🇮🇹', 'es': '🇪🇸',
     };
     return flags[_nativeLanguage] ?? '🌐';
@@ -604,6 +604,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
   void _showLanguagePicker() {
     final langs = [
       {'code': 'fa', 'name': 'فارسی', 'flag': '🇮🇷'},
+      {'code': 'da', 'name': 'دانمارکی (Dansk)', 'flag': '🇩🇰'},
       {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
       {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
     ];
@@ -663,13 +664,15 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: color,
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
       ],

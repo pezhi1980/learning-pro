@@ -9,16 +9,20 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 
+enum ExerciseMode { practice, quiz }
+
 class MultipleChoiceScreen extends StatefulWidget {
   final String languageId;
   final String levelId;
   final String? topicId;
+  final ExerciseMode mode;
 
   const MultipleChoiceScreen({
     super.key,
     required this.languageId,
     required this.levelId,
     this.topicId,
+    required this.mode,
   });
 
   @override
@@ -65,13 +69,14 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
     });
 
     try {
+      final limitCount = widget.mode == ExerciseMode.quiz ? 10 : 5;
       final data = await SupabaseService.getExercises(
         languageId: widget.languageId,
         levelId: widget.levelId,
         type: 'multiple_choice',
         nativeLanguage: 'fa',
         topicId: widget.topicId,
-        limit: 5,
+        limit: limitCount,
       );
 
       if (mounted) {
@@ -99,8 +104,8 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
       _isAnswered = true;
       if (isCorrect) _score++;
 
-      // Adaptive Learning: If wrong, dynamically append 2 targeted remedial questions
-      if (!isCorrect && _exercises.isNotEmpty) {
+      // Adaptive Learning: If wrong in practice mode, dynamically append 2 targeted remedial questions
+      if (widget.mode == ExerciseMode.practice && !isCorrect && _exercises.isNotEmpty) {
         final currentEx = _exercises[_currentIndex];
         final candidates = List<Map<String, dynamic>>.from(_exercises)
           ..remove(currentEx)
@@ -192,9 +197,9 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Quick Quiz',
-                style: TextStyle(
+              Text(
+                widget.mode == ExerciseMode.quiz ? 'Quick Quiz' : 'Practice',
+                style: const TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -466,6 +471,9 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
   }
 
   Widget _buildResultView() {
+    final isQuiz = widget.mode == ExerciseMode.quiz;
+    final total = _exercises.length;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -481,13 +489,17 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
                 border: Border.all(color: _levelColor, width: 3),
               ),
               child: Center(
-                child: Icon(Icons.check_circle_rounded, size: 48, color: _levelColor),
+                child: Icon(
+                  isQuiz ? Icons.emoji_events_rounded : Icons.check_circle_rounded,
+                  size: 48,
+                  color: _levelColor,
+                ),
               ),
             ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
             const SizedBox(height: 24),
-            const Text(
-              'Practice Completed! 🎉',
-              style: TextStyle(
+            Text(
+              isQuiz ? 'Quiz Complete! 🏆' : 'Practice Completed! 🎉',
+              style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
@@ -495,16 +507,47 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Great job practicing! You have reinforced your understanding of this topic.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Outfit',
-                fontSize: 14,
-                color: AppTheme.darkTextSub,
-                height: 1.5,
+            if (isQuiz) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _levelColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _levelColor.withOpacity(0.3)),
+                ),
+                child: Text(
+                  'Score: $_score / $total',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: _levelColor,
+                  ),
+                ),
               ),
-            ),
+              Text(
+                'You scored $_score out of $total on this quiz.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 14,
+                  color: AppTheme.darkTextSub,
+                  height: 1.5,
+                ),
+              ),
+            ] else ...[
+              Text(
+                'Great job practicing! You have practiced $total exercises and reinforced your understanding of this topic.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 14,
+                  color: AppTheme.darkTextSub,
+                  height: 1.5,
+                ),
+              ),
+            ],
             const SizedBox(height: 36),
             SizedBox(
               width: double.infinity,
@@ -512,7 +555,7 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
               child: ElevatedButton.icon(
                 onPressed: _loadExercises,
                 icon: const Icon(Icons.replay_rounded),
-                label: const Text('Practice Again'),
+                label: Text(isQuiz ? 'Retake Quiz' : 'Practice Again'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _levelColor,
                   foregroundColor: Colors.white,

@@ -14,6 +14,12 @@ import '../../features/grammar/screens/grammar_list_screen.dart';
 import '../../features/grammar/screens/grammar_detail_screen.dart';
 import '../../features/vocabulary/screens/vocabulary_list_screen.dart';
 import '../../features/exercises/screens/multiple_choice_screen.dart';
+import '../../features/exercises/screens/sentence_order_screen.dart';
+import '../../features/exercises/screens/error_correction_screen.dart';
+import '../../features/exercises/screens/fill_blank_screen.dart';
+import '../../features/exercises/screens/translation_screen.dart';
+import '../../features/exercises/screens/exam_screen.dart';
+import '../../features/exercises/screens/exercise_hub_screen.dart';
 import '../../features/progress/screens/progress_screen.dart';
 import '../../features/learner_flows.dart' hide ProgressScreen;
 
@@ -88,6 +94,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           languageId: s.pathParameters['langId'] ?? 'en',
           levelId: s.pathParameters['levelId'] ?? 'A1',
           topicId: s.uri.queryParameters['topicId'],
+          mode: s.uri.queryParameters['mode'] == 'quiz'
+              ? ExerciseMode.quiz
+              : ExerciseMode.practice,
         ),
       ),
       GoRoute(
@@ -96,6 +105,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           languageId: s.pathParameters['langId'] ?? 'en',
           levelId: s.pathParameters['levelId'] ?? 'A1',
           topicId: s.uri.queryParameters['topicId'],
+          mode: s.uri.queryParameters['mode'] == 'quiz'
+              ? ExerciseMode.quiz
+              : ExerciseMode.practice,
         ),
       ),
       GoRoute(
@@ -104,6 +116,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           languageId: s.pathParameters['langId'] ?? 'en',
           levelId: s.pathParameters['levelId'] ?? 'A1',
           topicId: s.pathParameters['topicId'],
+          mode: s.uri.queryParameters['mode'] == 'quiz'
+              ? ExerciseMode.quiz
+              : ExerciseMode.practice,
         ),
       ),
       GoRoute(
@@ -112,6 +127,57 @@ final routerProvider = Provider<GoRouter>((ref) {
           languageId: 'en',
           levelId: 'A1',
           topicId: s.pathParameters['exerciseId'],
+          mode: ExerciseMode.practice,
+        ),
+      ),
+
+      // Type-specific exercise routes
+      GoRoute(
+        path: '/exercises/fill_blank/:langId/:levelId',
+        builder: (c, s) => FillBlankScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
+        ),
+      ),
+      GoRoute(
+        path: '/exercises/sentence_order/:langId/:levelId',
+        builder: (c, s) => SentenceOrderScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
+        ),
+      ),
+      GoRoute(
+        path: '/exercises/error_correction/:langId/:levelId',
+        builder: (c, s) => ErrorCorrectionScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
+        ),
+      ),
+      GoRoute(
+        path: '/exercises/translation/:langId/:levelId',
+        builder: (c, s) => TranslationScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
+        ),
+      ),
+      GoRoute(
+        path: '/exercises/exam/:langId/:levelId',
+        builder: (c, s) => ExamScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
+        ),
+      ),
+      GoRoute(
+        path: '/exercises/hub/:langId/:levelId',
+        builder: (c, s) => ExerciseHubScreen(
+          languageId: s.pathParameters['langId'] ?? 'en',
+          levelId: s.pathParameters['levelId'] ?? 'A1',
+          topicId: s.uri.queryParameters['topicId'],
         ),
       ),
       GoRoute(

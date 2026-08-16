@@ -18,7 +18,6 @@ class LanguageSelectionScreen extends StatefulWidget {
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   String? _selectedLanguageId;
-  bool _isLoading = false;
 
   // Static language data — will come from Supabase once more are added
   final List<_LanguageItem> _languages = const [
