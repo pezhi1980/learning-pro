@@ -20,6 +20,7 @@ from .curriculum_validator import CurriculumValidator
 from .exercise_validator import ExerciseValidator
 from .output_validator import OutputValidator
 from .source_validator import SourceValidator
+from .grammar_content_validator import GrammarContentValidator
 
 
 def validate_all(

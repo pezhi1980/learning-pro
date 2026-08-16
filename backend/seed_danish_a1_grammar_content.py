@@ -457,6 +457,19 @@ def seed_danish_grammar_content():
         
         topic_id = topic_res.data[0]["id"]
 
+        # Validate completeness & structural rules
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("grammar_content_validator", "validators/grammar_content_validator.py")
+        gcv = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gcv)
+
+        val_result = gcv.GrammarContentValidator().validate(data)
+        if not val_result.passed:
+            print(f"❌ Grammar content validation failed for Danish topic '{topic_code}':")
+            for issue in val_result.issues:
+                print(f"   • [{issue.code}] {issue.message}")
+            continue
+
         payload = {
             "topic_id": topic_id,
             "native_language": "da",
