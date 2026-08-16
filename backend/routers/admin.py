@@ -138,6 +138,7 @@ async def generate_a1_multiple_choice(
                     native_language=native_language,
                     title=content.get("title", topic_code),
                     explanation=content.get("explanation", ""),
+                    comparison=content.get("comparison", ""),
                     examples_json=content.get("examples_json", []),
                     tips_json=content.get("tips_json", []),
                     common_mistakes_json=content.get("common_mistakes_json", []),

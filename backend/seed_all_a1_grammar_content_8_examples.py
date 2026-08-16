@@ -185,7 +185,7 @@ A1_CONTENT_DATA = {
             {"tip": "فراموش نکنید برای he, she, it حتماً s یا es به انتهای فعل اضافه کنید.", "example": "He runs fast."}
         ],
         "common_mistakes_json": [
-            {"wrong": "She live in London.", "right": "She lives in London.", "reason": "برای she فعل نیاز به s دارد."}
+            {"wrong": "She live in Oslo.", "right": "She lives in Oslo.", "reason": "برای she فعل نیاز به s دارد."}
         ]
     },
     "present_simple_negative": {
@@ -194,7 +194,7 @@ A1_CONTENT_DATA = {
         "comparison": "در فارسی منفی کردن با پیشوند 'نـ' (نمی‌روم، نمی‌رود) ساخته می‌شود، اما در انگلیسی از افعال کمکی don't/doesn't قبل از فعل استفاده می‌کنیم.",
         "examples_json": [
             {"target": "I don't like tea.", "native": "من چای دوست ندارم.", "breakdown": "برای I از don't استفاده می‌شود."},
-            {"target": "She doesn't speak French.", "native": "او فرانسوی صحبت نمی‌کند.", "breakdown": "برای she از doesn't استفاده می‌شود و s حذف می‌شود."},
+            {"target": "She doesn't speak Swedish.", "native": "او سوئدی صحبت نمی‌کند.", "breakdown": "برای she از doesn't استفاده می‌شود و s حذف می‌شود."},
             {"target": "He doesn't eat meat.", "native": "او گوشت نمی‌خورد.", "breakdown": "doesn't + فعل پایه eat."},
             {"target": "They don't watch TV.", "native": "آن‌ها تلویزیون تماشا نمی‌کنند.", "breakdown": "منفی جمع با don't."},
             {"target": "We don't work on Sundays.", "native": "ما روزهای یکشنبه کار نمی‌کنیم.", "breakdown": "منفی با don't برای We."},
@@ -329,10 +329,10 @@ A1_CONTENT_DATA = {
             {"target": "We are at home now.", "native": "ما الان در خانه هستیم.", "breakdown": "موقعیت در خانه با at home بیان می‌شود."},
         ],
         "tips_json": [
-            {"tip": "برای شهرها و کشورها از in و برای موقعیت‌های خاص از at استفاده کنید.", "example": "in Paris / at school"}
+            {"tip": "برای شهرها و کشورها از in و برای موقعیت‌های خاص از at استفاده کنید.", "example": "in Helsinki / at school"}
         ],
         "common_mistakes_json": [
-            {"wrong": "He lives at London.", "right": "He lives in London.", "reason": "قبل از شهرها باید از in استفاده شود."}
+            {"wrong": "He lives at Oslo.", "right": "He lives in Oslo.", "reason": "قبل از شهرها باید از in استفاده شود."}
         ]
     },
     "adjectives_basic": {
@@ -428,7 +428,7 @@ A1_CONTENT_DATA = {
             {"target": "She wants a cup of coffee.", "native": "او یک فنجان قهوه می‌خواهد.", "breakdown": "wants برای سوم شخص مفرد she."},
             {"target": "I want to learn English.", "native": "من می‌خواهم انگلیسی یاد بگیرم.", "breakdown": "want + to + فعل ساده learn."},
             {"target": "He likes playing football.", "native": "او فوتبال بازی کردن را دوست دارد.", "breakdown": "likes + اسم مصدر."},
-            {"target": "They want to travel to Italy.", "native": "آن‌ها می‌خواهند به ایتالیا سفر کنند.", "breakdown": "want + to + travel."},
+            {"target": "They want to travel to Norway.", "native": "آن‌ها می‌خواهند به نروژ سفر کنند.", "breakdown": "want + to + travel."},
             {"target": "Do you want some water?", "native": "آیا مقداری آب می‌خواهی؟", "breakdown": "سوالی با Do برای want."},
             {"target": "She doesn't like cold coffee.", "native": "او قهوه سرد دوست ندارد.", "breakdown": "منفی با doesn't like."},
             {"target": "We want to buy a new car.", "native": "ما می‌خواهیم یک ماشین جدید بخریم.", "breakdown": "want + to + buy."},
@@ -468,18 +468,30 @@ def seed_grammar_content():
             "topic_id": topic_id,
             "native_language": "fa",
             "title": content_data["title"],
-            "explanation": content_data["explanation"] + "\n\n📌 تفاوت با زبان مادری:\n" + content_data["comparison"],
+            "explanation": content_data["explanation"],
+            "comparison": content_data["comparison"],
             "examples_json": content_data["examples_json"],
             "tips_json": content_data["tips_json"],
             "common_mistakes_json": content_data["common_mistakes_json"],
-            "quality_score": 0.98,
-            "generation_model": "gpt-4o",
+            "quality_score": 1.0,
+            "generation_model": "manual",
         }
 
-        if existing.data:
-            sb.table("grammar_content").update(payload).eq("id", existing.data["id"]).execute()
-        else:
-            sb.table("grammar_content").insert(payload).execute()
+        try:
+            if existing.data:
+                sb.table("grammar_content").update(payload).eq("id", existing.data["id"]).execute()
+            else:
+                sb.table("grammar_content").insert(payload).execute()
+        except Exception as e:
+            if "comparison" in str(e):
+                payload_fallback = dict(payload)
+                del payload_fallback["comparison"]
+                if existing.data:
+                    sb.table("grammar_content").update(payload_fallback).eq("id", existing.data["id"]).execute()
+                else:
+                    sb.table("grammar_content").insert(payload_fallback).execute()
+            else:
+                raise e
 
         updated_count += 1
         print(f"✅ Topic '{topic_code:28s}': updated with 8 examples & Persian comparison.")

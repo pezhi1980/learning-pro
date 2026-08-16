@@ -99,11 +99,12 @@ async def insert_grammar_content(
     native_language: str,
     title: str,
     explanation: str,
-    examples_json: list,
-    tips_json: list,
-    common_mistakes_json: list,
-    generation_model: str,
-    quality_score: float,
+    comparison: str = "",
+    examples_json: list = None,
+    tips_json: list = None,
+    common_mistakes_json: list = None,
+    generation_model: str = "gpt-4o",
+    quality_score: float = 1.0,
 ) -> str:
     """Insert grammar content and return its UUID"""
     sb = get_supabase()
@@ -114,9 +115,10 @@ async def insert_grammar_content(
             "native_language": native_language,
             "title": title,
             "explanation": explanation,
-            "examples_json": examples_json,
-            "tips_json": tips_json,
-            "common_mistakes_json": common_mistakes_json,
+            "comparison": comparison,
+            "examples_json": examples_json or [],
+            "tips_json": tips_json or [],
+            "common_mistakes_json": common_mistakes_json or [],
             "generation_model": generation_model,
             "quality_score": quality_score,
         })
