@@ -116,10 +116,10 @@ TOPIC_LABELS = {
 # ── Grammar Content Generation ─────────────────────────────────────────────────
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-async def generate_grammar_content(topic_code: str, native_language: str) -> dict:
+async def generate_grammar_content(topic_code: str, native_language: str, level_code: str = "A1") -> dict:
     """
-    Generate grammar explanation, examples, tips and common mistakes
-    for a given topic in the user's native language.
+    Generate complete grammar explanation, examples, tips and common mistakes
+    for a given topic in the user's native language for the given CEFR level.
     """
     topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
 
@@ -130,9 +130,10 @@ async def generate_grammar_content(topic_code: str, native_language: str) -> dic
         "ar": "Write the explanation, comparison, tips and common mistakes in Arabic. Keep target example sentences in English.",
     }.get(native_language, "Write in English.")
 
-    prompt = f"""You are an expert English grammar teacher creating A1-A2 CEFR level content.
+    prompt = f"""You are an expert English grammar teacher creating CEFR {level_code} level educational content.
 
 Topic: {topic_label}
+CEFR Level: {level_code}
 Native Language for Explanations: {native_language}
 Instruction: {lang_instruction}
 
@@ -140,32 +141,39 @@ Create grammar content in the following JSON format ONLY. Return ONLY valid JSON
 
 {{
   "title": "<topic title in English>",
-  "explanation": "<clear explanation in {native_language} language, 2-4 paragraphs, A1-A2 level>",
-  "comparison": "<clear explanation in {native_language} language explaining the structural difference between English grammar and {native_language} grammar for this topic>",
+  "explanation": "<clear explanation in {native_language} language, MINIMUM 3 sentences (2-4 paragraphs), tailored to {level_code} CEFR complexity>",
+  "comparison": "<clear explanation in {native_language} language explaining the exact structural contrast between English grammar and {native_language} grammar for this topic>",
   "examples_json": [
-    {{"target": "<English sentence 1>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language} explaining native language difference>"}},
-    {{"target": "<English sentence 2>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language} explaining native language difference>"}},
-    {{"target": "<English sentence 3>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}}
+    {{"target": "<English sentence 1>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 2>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 3>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 4>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 5>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 6>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 7>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}},
+    {{"target": "<English sentence 8>", "native": "<translation in {native_language}>", "breakdown": "<grammar breakdown note in {native_language}>"}}
   ],
   "tips_json": [
-    {{"tip": "<important tip in {native_language}>", "example": "<short English example>"}}
+    {{"tip": "<tip 1 in {native_language}>", "example": "<short English example 1>"}},
+    {{"tip": "<tip 2 in {native_language}>", "example": "<short English example 2>"}},
+    {{"tip": "<tip 3 in {native_language}>", "example": "<short English example 3>"}}
   ],
   "common_mistakes_json": [
-    {{"wrong": "<incorrect English>", "right": "<correct English>", "reason": "<explanation in {native_language}>"}}
+    {{"wrong": "<incorrect English 1>", "right": "<correct English 1>", "reason": "<explanation 1 in {native_language}>"}},
+    {{"wrong": "<incorrect English 2>", "right": "<correct English 2>", "reason": "<explanation 2 in {native_language}>"}},
+    {{"wrong": "<incorrect English 3>", "right": "<correct English 3>", "reason": "<explanation 3 in {native_language}>"}}
   ]
 }}
 
 Requirements:
-- Explanation and comparison must be clear for a beginner learner
-- Comparison must highlight exact structural differences between English and {native_language} (e.g. word order, verb position, articles)
-- Provide at least 2 clear examples illustrating the native language contrast in breakdown
-- Do NOT copy from any textbook — create original content
-- Follow CEFR standards exactly
-- CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:
-  Countries: Denmark, Sweden, Norway, Finland, Iceland
-  Cities: Copenhagen, Aarhus, Odense, Stockholm, Gothenburg, Malmö, Oslo, Bergen, Trondheim, Helsinki, Tampere, Reykjavik
-  Nationalities: Danish, Swedish, Norwegian, Finnish, Icelandic
-  Do not default to Paris, London, New York, or any other non-Scandinavian location under any circumstances."""
+1. Explanation MUST contain at least 3 complete sentences explaining the grammar rules thoroughly for level {level_code}.
+2. Comparison MUST be stored in its own field, explaining exact structural differences between English and {native_language}.
+3. MUST provide EXACTLY 8 detailed example items in examples_json, each with target, native, and breakdown fields filled.
+4. MUST provide MINIMUM 3 distinct items in tips_json; the 3 tips MUST NOT overlap or restate each other.
+5. MUST provide MINIMUM 3 distinct items in common_mistakes_json; the 3 common mistakes MUST NOT overlap or restate each other.
+6. Do NOT copy from any textbook — create original content.
+7. Follow CEFR {level_code} standards exactly.
+8. {SCANDINAVIAN_CONTENT_RULE}"""
 
     ai_client = get_openai_client()
     response = await ai_client.chat.completions.create(
@@ -177,6 +185,70 @@ Requirements:
 
     content = json.loads(response.choices[0].message.content)
     return content
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def filter_grammar_content_quality(
+    content: dict,
+    topic_code: str,
+    native_language: str,
+    level_code: str = "A1",
+) -> tuple[bool, float, str]:
+    """
+    Quality evaluation for generated grammar content using FILTER_MODEL (gpt-4o-mini).
+    Returns (passed, score, reason).
+    """
+    topic_label = TOPIC_LABELS.get(topic_code, topic_code.replace("_", " ").title())
+
+    prompt = f"""You are a strict English language education quality reviewer.
+
+Review this CEFR {level_code} grammar content for topic '{topic_label}' (Native Language: {native_language}):
+
+Title: {content.get('title')}
+Explanation: {content.get('explanation')}
+Comparison: {content.get('comparison')}
+Examples Count: {len(content.get('examples_json') or [])}
+Tips Count: {len(content.get('tips_json') or [])}
+Common Mistakes Count: {len(content.get('common_mistakes_json') or [])}
+
+Evaluate on these criteria and return ONLY valid JSON:
+{{
+  "passed": true/false,
+  "score": <float 0.0 to 1.0>,
+  "checks": {{
+    "explanation_clear_min_3_sentences": true/false,
+    "comparison_field_non_empty": true/false,
+    "at_least_8_valid_examples": true/false,
+    "at_least_3_distinct_tips": true/false,
+    "at_least_3_distinct_mistakes": true/false,
+    "scandinavian_geography_rule_followed": true/false
+  }},
+  "reason": "<brief reason if failed, or 'OK' if passed>"
+}}
+
+FAIL if ANY of these:
+- Explanation is unclear or fewer than 3 complete sentences
+- Comparison is empty or merged into explanation
+- Fewer than 8 valid examples with target/native/breakdown
+- Fewer than 3 tips, or tips overlap/restate each other
+- Fewer than 3 common mistakes, or mistakes overlap/restate each other
+- Example sentences reference non-Scandinavian countries or cities
+
+PASS threshold: all checks in checks object must be true AND score >= 0.75"""
+
+    ai_client = get_openai_client()
+    response = await ai_client.chat.completions.create(
+        model=FILTER_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        temperature=0.1,
+    )
+
+    result = json.loads(response.choices[0].message.content)
+    passed = result.get("passed", False)
+    score = float(result.get("score", 0.0))
+    reason = str(result.get("reason", ""))
+    return passed, score, reason
 
 
 SCANDINAVIAN_CONTENT_RULE = """CONTENT RULE: Whenever an example sentence, exercise question, or translation pair references a country, city, or nationality, you MUST choose randomly from this fixed list only — never use any other country or city:

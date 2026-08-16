@@ -16,7 +16,10 @@ CORE RULES:
 
 import re
 from typing import Dict, List, Any, Set
-from backend.schemas.lesson_schema import ValidationIssue, ValidationResult
+try:
+    from backend.schemas.lesson_schema import ValidationIssue, ValidationResult
+except ImportError:
+    from schemas.lesson_schema import ValidationIssue, ValidationResult
 
 
 class GrammarContentValidator:
