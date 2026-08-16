@@ -26,9 +26,9 @@ spec_val.loader.exec_module(grammar_val_mod)
 GrammarContentValidator = grammar_val_mod.GrammarContentValidator
 
 
-def verify_all():
+def verify_all(native_language: str = "fa"):
     print("=" * 70)
-    print("🔍 VERIFYING GRAMMAR PIPELINE STEP 6 ACCEPTANCE CRITERIA")
+    print(f"🔍 VERIFYING GRAMMAR PIPELINE ACCEPTANCE CRITERIA (Native Language: '{native_language}')")
     print("=" * 70)
 
     # 1. Fetch all A1 topics and their grammar_content
@@ -38,16 +38,16 @@ def verify_all():
     topics_res = sb.table("grammar_topics").select("id, topic_code").eq("language_id", lang_uuid).eq("level_id", level_uuid).execute()
     topics = topics_res.data
 
-    print(f"\n--- 1 & 3 & 4. Verifying {len(topics)} A1 Grammar Topics in Supabase ---")
+    print(f"\n--- Verifying {len(topics)} A1 Grammar Topics for '{native_language}' in Supabase ---")
     all_passed = True
 
     for t in topics:
         topic_id = t["id"]
         topic_code = t["topic_code"]
 
-        gc_res = sb.table("grammar_content").select("*").eq("topic_id", topic_id).eq("native_language", "fa").maybe_single().execute()
+        gc_res = sb.table("grammar_content").select("*").eq("topic_id", topic_id).eq("native_language", native_language).maybe_single().execute()
         if not gc_res.data:
-            print(f"❌ Topic '{topic_code}' has NO grammar_content row!")
+            print(f"❌ Topic '{topic_code}' ({native_language}) has NO grammar_content row!")
             all_passed = False
             continue
 
@@ -56,12 +56,19 @@ def verify_all():
         comparison = row.get("comparison", "")
 
         # Handle comparison extraction if column is missing on remote PostgreSQL DB
-        if (not comparison or len(comparison.strip()) == 0) and "📌 تفاوت با زبان مادری:" in explanation:
-            parts = explanation.split("📌 تفاوت با زبان مادری:")
-            explanation = parts[0].strip()
-            comparison = parts[1].strip()
-            row["explanation"] = explanation
-            row["comparison"] = comparison
+        if (not comparison or len(comparison.strip()) == 0):
+            if "📌 تفاوت با زبان مادری:" in explanation:
+                parts = explanation.split("📌 تفاوت با زبان مادری:")
+                explanation = parts[0].strip()
+                comparison = parts[1].strip()
+                row["explanation"] = explanation
+                row["comparison"] = comparison
+            elif "**Sammenligning med dansk grammatik:**" in explanation:
+                parts = explanation.split("**Sammenligning med dansk grammatik:**")
+                explanation = parts[0].strip()
+                comparison = parts[1].strip()
+                row["explanation"] = explanation
+                row["comparison"] = comparison
 
         tips = row.get("tips_json") or []
         mistakes = row.get("common_mistakes_json") or []
@@ -118,4 +125,8 @@ def verify_all():
 
 
 if __name__ == "__main__":
-    verify_all()
+    native_lang = "fa"
+    for idx, arg in enumerate(sys.argv):
+        if arg == "--native" and idx + 1 < len(sys.argv):
+            native_lang = sys.argv[idx + 1]
+    verify_all(native_lang)
