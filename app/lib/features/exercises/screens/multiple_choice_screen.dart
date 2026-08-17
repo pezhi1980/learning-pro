@@ -7,6 +7,7 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../core/utils/localization_helper.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 
 enum ExerciseMode { practice, quiz }
@@ -69,12 +70,13 @@ class _MultipleChoiceScreenState extends State<MultipleChoiceScreen> {
     });
 
     try {
+      final nativeLang = await LocalizationHelper.getSelectedExplanationLanguage();
       final limitCount = widget.mode == ExerciseMode.quiz ? 10 : 5;
       final data = await SupabaseService.getExercises(
         languageId: widget.languageId,
         levelId: widget.levelId,
         type: 'multiple_choice',
-        nativeLanguage: 'fa',
+        nativeLanguage: nativeLang,
         topicId: widget.topicId,
         limit: limitCount,
       );

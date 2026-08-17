@@ -5,14 +5,96 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/localization_helper.dart';
 
-class CategorySelectionScreen extends StatelessWidget {
+class CategorySelectionScreen extends StatefulWidget {
   final String languageId;
 
   const CategorySelectionScreen({
     super.key,
     required this.languageId,
   });
+
+  @override
+  State<CategorySelectionScreen> createState() => _CategorySelectionScreenState();
+}
+
+class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
+  String _explanationLang = 'en';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguagePreference();
+  }
+
+  Future<void> _loadLanguagePreference() async {
+    final lang = await LocalizationHelper.getSelectedExplanationLanguage();
+    if (mounted) {
+      setState(() => _explanationLang = lang);
+    }
+  }
+
+  void _showExplanationLanguageDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.darkCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  LocalizationHelper.tr('explanation_language', lang: _explanationLang),
+                  style: const TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.darkText,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...LocalizationHelper.nativeLanguageNames.entries.map((entry) {
+                  final isSelected = entry.key == _explanationLang;
+                  final flag = LocalizationHelper.nativeLanguageFlags[entry.key] ?? '🌐';
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    leading: Text(flag, style: const TextStyle(fontSize: 24)),
+                    title: Text(
+                      entry.value,
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 15,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? AppTheme.primaryTeal : AppTheme.darkText,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryTeal)
+                        : null,
+                    onTap: () async {
+                      await LocalizationHelper.setSelectedExplanationLanguage(entry.key);
+                      if (mounted) {
+                        setState(() => _explanationLang = entry.key);
+                      }
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   String get _languageName {
     const names = {
@@ -22,7 +104,7 @@ class CategorySelectionScreen extends StatelessWidget {
       'it': 'Italian',
       'es': 'Spanish',
     };
-    return names[languageId] ?? languageId.toUpperCase();
+    return names[widget.languageId] ?? widget.languageId.toUpperCase();
   }
 
   String get _languageFlag {
@@ -33,11 +115,14 @@ class CategorySelectionScreen extends StatelessWidget {
       'it': '🇮🇹',
       'es': '🇪🇸',
     };
-    return flags[languageId] ?? '🌐';
+    return flags[widget.languageId] ?? '🌐';
   }
 
   @override
   Widget build(BuildContext context) {
+    final nativeFlag = LocalizationHelper.nativeLanguageFlags[_explanationLang] ?? '🌐';
+    final nativeName = LocalizationHelper.nativeLanguageNames[_explanationLang] ?? _explanationLang;
+
     return Scaffold(
       backgroundColor: AppTheme.darkBg,
       body: Container(
@@ -63,23 +148,56 @@ class CategorySelectionScreen extends StatelessWidget {
                       },
                     ),
                     const Spacer(),
+                    // Explanation language selector chip
+                    GestureDetector(
+                      onTap: _showExplanationLanguageDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.darkCard,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.primaryTeal.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(nativeFlag, style: const TextStyle(fontSize: 16)),
+                            const SizedBox(width: 6),
+                            Text(
+                              nativeName.split(' ').first,
+                              style: const TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryTeal,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.keyboard_arrow_down_rounded,
+                                size: 16, color: AppTheme.primaryTeal),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Target learning language
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppTheme.darkCard,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: AppTheme.darkCardBorder),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(_languageFlag, style: const TextStyle(fontSize: 18)),
+                          Text(_languageFlag, style: const TextStyle(fontSize: 16)),
                           const SizedBox(width: 6),
                           Text(
                             _languageName,
                             style: const TextStyle(
                               fontFamily: 'Outfit',
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.darkText,
                             ),
@@ -90,11 +208,11 @@ class CategorySelectionScreen extends StatelessWidget {
                   ],
                 ).animate().fadeIn(duration: 300.ms),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
                 // Header title
                 Text(
-                  'حق انتخاب شما ✨',
+                  LocalizationHelper.tr('your_choice', lang: _explanationLang),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontFamily: 'Outfit',
                         color: AppTheme.darkText,
@@ -105,14 +223,14 @@ class CategorySelectionScreen extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(
-                  'چه بخشی را می‌خواهید شروع کنید؟ گرامر یا لغات؟',
+                  LocalizationHelper.tr('choose_section', lang: _explanationLang),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontFamily: 'Outfit',
                         color: AppTheme.darkTextSub,
                       ),
                 ).animate().fadeIn(delay: 200.ms),
 
-                const SizedBox(height: 36),
+                const SizedBox(height: 32),
 
                 // Category options
                 Expanded(
@@ -121,18 +239,18 @@ class CategorySelectionScreen extends StatelessWidget {
                     children: [
                       // Grammar Option
                       _CategoryCard(
-                        title: 'گرامر (Grammar)',
-                        subtitle:
-                            'آموزش گرامر از سطح A1 تا A2 به زبان مادری همراه با توضیح تفاوت‌ها و ۲ مثال کاربردی',
+                        title: LocalizationHelper.tr('grammar_title', lang: _explanationLang),
+                        subtitle: LocalizationHelper.tr('grammar_desc', lang: _explanationLang),
                         icon: Icons.menu_book_rounded,
                         accentGradient: const LinearGradient(
                           colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        badgeText: 'A1 - A2 زبان مادری',
+                        badgeText: LocalizationHelper.tr('grammar_badge', lang: _explanationLang),
+                        enterText: LocalizationHelper.tr('enter_section', lang: _explanationLang),
                         onTap: () {
-                          context.push('/levels/$languageId');
+                          context.push('/levels/${widget.languageId}');
                         },
                       ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
 
@@ -140,18 +258,18 @@ class CategorySelectionScreen extends StatelessWidget {
 
                       // Vocabulary Option
                       _CategoryCard(
-                        title: 'لغات (Vocabulary)',
-                        subtitle:
-                            'آموزش و مرور لغات کاربردی، اصطلاحات و کلمات سطح‌بندی شده',
+                        title: LocalizationHelper.tr('vocab_title', lang: _explanationLang),
+                        subtitle: LocalizationHelper.tr('vocab_desc', lang: _explanationLang),
                         icon: Icons.style_rounded,
                         accentGradient: const LinearGradient(
                           colors: [Color(0xFF06B6D4), Color(0xFF10B981)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        badgeText: 'کلمات و فلش‌کارت',
+                        badgeText: LocalizationHelper.tr('vocab_badge', lang: _explanationLang),
+                        enterText: LocalizationHelper.tr('enter_section', lang: _explanationLang),
                         onTap: () {
-                          context.push('/vocabulary/$languageId/A1');
+                          context.push('/vocabulary/${widget.languageId}/A1');
                         },
                       ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
                     ],
@@ -172,6 +290,7 @@ class _CategoryCard extends StatelessWidget {
   final IconData icon;
   final LinearGradient accentGradient;
   final String badgeText;
+  final String enterText;
   final VoidCallback onTap;
 
   const _CategoryCard({
@@ -180,6 +299,7 @@ class _CategoryCard extends StatelessWidget {
     required this.icon,
     required this.accentGradient,
     required this.badgeText,
+    required this.enterText,
     required this.onTap,
   });
 
@@ -229,13 +349,11 @@ class _CategoryCard extends StatelessWidget {
                       child: Icon(icon, color: Colors.white, size: 28),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: accentGradient.colors.first.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: accentGradient.colors.first.withOpacity(0.3)),
+                        border: Border.all(color: accentGradient.colors.first.withOpacity(0.3)),
                       ),
                       child: Text(
                         badgeText,
@@ -273,7 +391,7 @@ class _CategoryCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'ورود به این بخش',
+                      enterText,
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,

@@ -250,40 +250,58 @@ class SupabaseService {
     required String languageId,
     required String levelId,
     required String type,
-    required String nativeLanguage,
+    String nativeLanguage = 'fa',
     String? topicId,
     int limit = 5,
   }) async {
-    try {
-      if (topicId != null && topicId.isNotEmpty) {
-        final result = await client.rpc('get_random_exercises', params: {
-          'p_topic_id': topicId,
-          'p_limit': limit,
-        });
-        final list = List<Map<String, dynamic>>.from(result);
+    final langUuid = await resolveLanguageId(languageId);
+    final levelUuid = await resolveLevelId(levelId);
+
+    // 1. Try fetching by specific topic_id if provided
+    if (topicId != null && topicId.isNotEmpty) {
+      try {
+        var query = client
+            .from('exercises')
+            .select()
+            .eq('type', type)
+            .eq('is_approved', true);
+
+        if (_uuidRegex.hasMatch(topicId)) {
+          query = query.eq('topic_id', topicId);
+        }
+
+        final res = await query.limit(limit);
+        final list = List<Map<String, dynamic>>.from(res);
         if (list.isNotEmpty) return list;
-      }
+      } catch (_) {}
+    }
 
-      final langUuid = await resolveLanguageId(languageId);
-      final levelUuid = await resolveLevelId(levelId);
+    // 2. Query by language_id and level_id directly from exercises table
+    try {
+      final res = await client
+          .from('exercises')
+          .select()
+          .eq('language_id', langUuid)
+          .eq('level_id', levelUuid)
+          .eq('type', type)
+          .eq('is_approved', true)
+          .limit(limit);
 
-      final result = await client.rpc('get_random_exercises', params: {
-        'p_language_id': langUuid,
-        'p_level_id': levelUuid,
-        'p_type': type,
-        'p_limit': limit,
-      });
-      final list = List<Map<String, dynamic>>.from(result);
+      final list = List<Map<String, dynamic>>.from(res);
       if (list.isNotEmpty) return list;
+    } catch (_) {}
 
-      final fallback = await client.rpc('get_random_exercises', params: {
-        'p_language_id': langUuid,
-        'p_level_id': levelUuid,
-        'p_type': type,
-        'p_limit': limit,
-      });
-      return List<Map<String, dynamic>>.from(fallback);
-    } catch (e) {
+    // 3. Fallback: query without strict language/level UUID filter (by type and approval)
+    try {
+      final res = await client
+          .from('exercises')
+          .select()
+          .eq('type', type)
+          .eq('is_approved', true)
+          .limit(limit);
+
+      return List<Map<String, dynamic>>.from(res);
+    } catch (_) {
       return [];
     }
   }

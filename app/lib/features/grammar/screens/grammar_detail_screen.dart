@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/localization_helper.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 
 class GrammarDetailScreen extends StatefulWidget {
@@ -59,9 +60,74 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
     super.dispose();
   }
 
+  String _nativeLangFlag() {
+    return LocalizationHelper.nativeLanguageFlags[_nativeLanguage] ?? '🌐';
+  }
+
+  void _showLanguagePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.darkCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Explanation Language',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.darkText,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...LocalizationHelper.nativeLanguageNames.entries.map((entry) {
+                  final isSelected = entry.key == _nativeLanguage;
+                  final flag = LocalizationHelper.nativeLanguageFlags[entry.key] ?? '🌐';
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    leading: Text(flag, style: const TextStyle(fontSize: 24)),
+                    title: Text(
+                      entry.value,
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 15,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? AppTheme.primaryTeal : AppTheme.darkText,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryTeal)
+                        : null,
+                    onTap: () async {
+                      await LocalizationHelper.setSelectedExplanationLanguage(entry.key);
+                      if (mounted) {
+                        setState(() => _nativeLanguage = entry.key);
+                        _loadContent();
+                      }
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _nativeLanguage = prefs.getString(AppConstants.keyNativeLanguage) ?? 'fa';
+    _nativeLanguage = await LocalizationHelper.getSelectedExplanationLanguage();
     await _loadContent();
   }
 
