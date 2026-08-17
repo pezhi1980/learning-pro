@@ -29,7 +29,8 @@ class VocabularyRepository:
         if search_directories is None:
             base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
             backend_data = os.path.join(base_dir, "backend", "data", "pdfs")
-            search_directories = [backend_data, base_dir]
+            english_data = os.path.join(base_dir, "English Grammar and vocabulary")
+            search_directories = [backend_data, english_data, base_dir]
 
         self.search_directories = search_directories
         self._by_id: Dict[str, VocabularySourceItem] = {}
