@@ -20,7 +20,6 @@ app/.packages
 app/build/
 app/.pub-cache/
 app/.pub/
-app/pubspec.lock
 app/android/.gradle/
 app/android/captures/
 app/android/gradlew
