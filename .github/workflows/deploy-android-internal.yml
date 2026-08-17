@@ -40,13 +40,15 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/android/app/upload-keystore.jks
+          cp app/android/app/upload-keystore.jks app/android/upload-keystore.jks
 
       - name: Write key.properties
         run: |
-          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > app/android/app/key.properties
-          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> app/android/app/key.properties
-          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> app/android/app/key.properties
-          echo "storeFile=upload-keystore.jks" >> app/android/app/key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > app/android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> app/android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> app/android/key.properties
+          echo "storeFile=upload-keystore.jks" >> app/android/key.properties
+          cp app/android/key.properties app/android/app/key.properties
 
       - name: Build release AAB
         working-directory: app
@@ -65,4 +67,6 @@ jobs:
         if: always()
         run: |
           rm -f app/android/app/upload-keystore.jks
+          rm -f app/android/upload-keystore.jks
           rm -f app/android/app/key.properties
+          rm -f app/android/key.properties

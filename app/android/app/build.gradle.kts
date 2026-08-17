@@ -2,10 +2,24 @@ import java.util.Properties
 import java.io.FileInputStream
 
 val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
+val keystorePropertiesFile = listOf(
+    rootProject.file("key.properties"),
+    rootProject.file("app/key.properties"),
+    file("key.properties")
+).firstOrNull { it.exists() }
+
+if (keystorePropertiesFile != null) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
+val rawStoreFile = keystoreProperties["storeFile"] as String?
+val resolvedStoreFile = if (rawStoreFile != null) {
+    listOf(
+        file(rawStoreFile),
+        rootProject.file(rawStoreFile),
+        rootProject.file("app/$rawStoreFile")
+    ).firstOrNull { it.exists() } ?: file(rawStoreFile)
+} else null
 
 plugins {
     id("com.android.application")
@@ -36,16 +50,24 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            val alias = keystoreProperties["keyAlias"] as String?
+            val keyPass = keystoreProperties["keyPassword"] as String?
+            val storePass = keystoreProperties["storePassword"] as String?
+            if (alias != null && keyPass != null && storePass != null && resolvedStoreFile != null) {
+                keyAlias = alias
+                keyPassword = keyPass
+                storeFile = resolvedStoreFile
+                storePassword = storePass
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val releaseConfig = signingConfigs.getByName("release")
+            if (releaseConfig.storeFile != null) {
+                signingConfig = releaseConfig
+            }
         }
     }
 }
