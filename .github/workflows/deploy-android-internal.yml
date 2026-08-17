@@ -24,7 +24,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: '3.32.x'
+          flutter-version: '3.47.0'
 
       - name: Create .env file for Flutter
         working-directory: app
