@@ -42,6 +42,8 @@ jobs:
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           storeFile=upload-keystore.jks
           EOF
+          - name: Create empty .env for build
+           run: touch app/.env
 
       - name: Build release AAB
         working-directory: app
