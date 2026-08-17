@@ -15,14 +15,3 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-subprojects {
-    if (project.name == "url_launcher_android") {
-        if (project.state.executed) {
-            pluginManager.apply("com.android.built-in-kotlin")
-        } else {
-            afterEvaluate {
-                pluginManager.apply("com.android.built-in-kotlin")
-            }
-        }
-    }
-}
