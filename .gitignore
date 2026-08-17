@@ -42,7 +42,6 @@ app/macos/Flutter/GeneratedPluginRegistrant.swift
 app/macos/Flutter/ephemeral/
 app/linux/flutter/ephemeral/
 app/windows/flutter/ephemeral/
-app/web/
 
 # ── Python / FastAPI Backend ───────────────────────────────
 backend/__pycache__/
