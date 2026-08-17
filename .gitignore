@@ -59,9 +59,9 @@ backend/*.egg-info/
 backend/.mypy_cache/
 backend/.ruff_cache/
 
-# ── PDF Source Files (large, store in Supabase Storage) ────
-# PDF source files — kept locally only, not in git
-*.pdf
+# ── PDF Source Files ─────────────────────────────────────────
+# Curriculum PDFs are tracked for curriculum ingestion & CI tests
+
 
 # ── IDE ────────────────────────────────────────────────────
 .idea/

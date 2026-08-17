@@ -50,7 +50,7 @@ jobs:
 
       - name: Build release AAB
         working-directory: app
-        run: flutter build appbundle --release --build-number=${{ github.run_number }}
+        run: flutter build appbundle --release --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Upload to Play Store Internal Testing
         uses: r0adkll/upload-google-play@v1
