@@ -41,7 +41,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.44.9'
+          flutter-version: '3.32.x'
+
+      - name: Create .env file for Flutter
+        run: |
+          cd app
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env
 
       - name: Install Flutter Dependencies
         run: |
