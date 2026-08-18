@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/localization_helper.dart';
 
 class LevelSelectionScreen extends StatefulWidget {
   final String languageId;
@@ -15,58 +16,58 @@ class LevelSelectionScreen extends StatefulWidget {
 }
 
 class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
-  static const List<_LevelItem> _levels = [
+  List<_LevelItem> get _levels => [
     _LevelItem(
       id: 'A1',
-      label: 'مرحله ۱',
-      title: 'مقدماتی (A1)',
-      description: 'آموزش گرامر به زبان مادری، جملات پایه و معرفی خود.',
-      color: Color(0xFF10B981),    // emerald
+      label: LocalizationHelper.tr('level_1_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_1_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_1_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFF10B981),    // emerald
       topics: 20,
       vocab: 500,
     ),
     _LevelItem(
       id: 'A2',
-      label: 'مرحله ۲',
-      title: 'پایه (A2)',
-      description: 'عبارات روزمره، تفاوت‌های گرامری و مکالمات رایج.',
-      color: Color(0xFF06B6D4),    // cyan
+      label: LocalizationHelper.tr('level_2_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_2_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_2_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFF06B6D4),    // cyan
       topics: 28,
       vocab: 1000,
     ),
     _LevelItem(
       id: 'B1',
-      label: 'مرحله ۳',
-      title: 'متوسط (B1)',
-      description: 'بیان نظرات، سفر و برقراری ارتباط در موقعیت‌های مختلف.',
-      color: Color(0xFF3B82F6),    // blue
+      label: LocalizationHelper.tr('level_3_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_3_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_3_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFF3B82F6),    // blue
       topics: 35,
       vocab: 2000,
     ),
     _LevelItem(
       id: 'B2',
-      label: 'مرحله ۴',
-      title: 'فراتر از متوسط (B2)',
-      description: 'درک متون پیچیده و مکالمه روان با افراد.',
-      color: Color(0xFF8B5CF6),    // violet
+      label: LocalizationHelper.tr('level_4_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_4_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_4_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFF8B5CF6),    // violet
       topics: 40,
       vocab: 3500,
     ),
     _LevelItem(
       id: 'C1',
-      label: 'مرحله ۵',
-      title: 'پیشرفته (C1)',
-      description: 'تسلط و بیان شیوا و روان بدون وقفه.',
-      color: Color(0xFFEC4899),    // pink
+      label: LocalizationHelper.tr('level_5_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_5_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_5_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFFEC4899),    // pink
       topics: 45,
       vocab: 5000,
     ),
     _LevelItem(
       id: 'C2',
-      label: 'مرحله ۶',
-      title: 'تسلط کامل (C2)',
-      description: 'درک کامل تمامی مفاهیم و بیان دقیق در شرایط پیچیده.',
-      color: Color(0xFFF59E0B),    // amber
+      label: LocalizationHelper.tr('level_6_label', lang: LocalizationHelper.currentLang),
+      title: LocalizationHelper.tr('level_6_title', lang: LocalizationHelper.currentLang),
+      description: LocalizationHelper.tr('level_6_desc', lang: LocalizationHelper.currentLang),
+      color: const Color(0xFFF59E0B),    // amber
       topics: 30,
       vocab: 8000,
     ),

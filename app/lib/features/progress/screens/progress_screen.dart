@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../core/utils/localization_helper.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -82,8 +83,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             }
           },
         ),
-        title: const Text(
-          'پیشرفت کاربر (Learner Progress)',
+        title: Text(
+          LocalizationHelper.tr('learner_progress', lang: LocalizationHelper.currentLang),
           style: TextStyle(
             fontFamily: 'Outfit',
             fontSize: 18,
@@ -129,8 +130,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             const Icon(Icons.error_outline_rounded,
                 size: 48, color: AppTheme.colorError),
             const SizedBox(height: 16),
-            const Text(
-              'خطا در دریافت اطلاعات پیشرفت',
+            Text(
+              LocalizationHelper.tr('error_loading', lang: LocalizationHelper.currentLang),
               style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 18,
@@ -141,14 +142,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ElevatedButton.icon(
               onPressed: _loadProgressData,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('تلاش مجدد'),
+              label: Text(LocalizationHelper.tr('try_again', lang: LocalizationHelper.currentLang)),
             ),
           ],
         ),
       );
     }
 
-    final firstName = _profile?['first_name'] as String? ?? 'کاربر';
+    final firstName = _profile?['first_name'] as String? ?? LocalizationHelper.tr('user', lang: LocalizationHelper.currentLang);
     final lastName = _profile?['last_name'] as String? ?? '';
     final nativeLang = _profile?['native_language'] as String? ?? 'fa';
     final role = _profile?['role'] as String? ?? 'learner';
@@ -196,7 +197,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'زبان مادری: ${nativeLang == 'fa' ? 'فارسی 🇮🇷' : nativeLang == 'da' ? 'دانمارکی 🇩🇰' : nativeLang.toUpperCase()} · نقش: $role',
+                      '${LocalizationHelper.tr('native_language_label', lang: LocalizationHelper.currentLang)}: ${LocalizationHelper.nativeLanguageNames[nativeLang] ?? nativeLang} · نقش: $role',
                       style: const TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 13,
@@ -217,7 +218,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           children: [
             Expanded(
               child: _StatCard(
-                title: 'سطح فعال',
+                title: LocalizationHelper.tr('active_level', lang: LocalizationHelper.currentLang),
                 value: widget.levelId,
                 icon: Icons.military_tech_rounded,
                 color: const Color(0xFF10B981),
@@ -226,8 +227,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _StatCard(
-                title: 'زبان هدف',
-                value: widget.languageId == 'en' ? 'انگلیسی 🇬🇧' : widget.languageId.toUpperCase(),
+                title: LocalizationHelper.tr('target_language', lang: LocalizationHelper.currentLang),
+                value: widget.languageId == 'en' ? LocalizationHelper.tr('english_lang', lang: LocalizationHelper.currentLang) : widget.languageId.toUpperCase(),
                 icon: Icons.language_rounded,
                 color: const Color(0xFF06B6D4),
               ),
@@ -239,7 +240,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
         // Weak topics / Review Recommendations
         Text(
-          'مباحث نیازمند مرور و تمرین مجدد',
+          LocalizationHelper.tr('topics_to_review', lang: LocalizationHelper.currentLang),
           style: TextStyle(
             fontFamily: 'Outfit',
             fontSize: 16,
@@ -263,9 +264,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 const Icon(Icons.check_circle_outline_rounded,
                     color: Color(0xFF10B981), size: 24),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'عالی! تاکنون هیچ نقطه ضعفی ثبت نشده است.',
+                    LocalizationHelper.tr('no_weaknesses', lang: LocalizationHelper.currentLang),
                     style: TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 14,
@@ -293,7 +294,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      topic['title']?.toString() ?? 'مبحث آموزشی',
+                      topic['title']?.toString() ?? 'Topic',
                       style: const TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
@@ -307,7 +308,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         '/grammar-detail/${widget.languageId}/${widget.levelId}/${topic['topic_id'] ?? topic['id']}',
                       );
                     },
-                    child: const Text('تمرین مجدد'),
+                    child: Text(LocalizationHelper.tr('practice_again', lang: LocalizationHelper.currentLang)),
                   ),
                 ],
               ),

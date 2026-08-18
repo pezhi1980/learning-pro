@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/router.dart';
 import 'core/constants/app_constants.dart';
+import 'core/utils/localization_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,11 +42,22 @@ void main() async {
   runApp(const ProviderScope(child: LearningLangProApp()));
 }
 
-class LearningLangProApp extends ConsumerWidget {
+class LearningLangProApp extends ConsumerStatefulWidget {
   const LearningLangProApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LearningLangProApp> createState() => _LearningLangProAppState();
+}
+
+class _LearningLangProAppState extends ConsumerState<LearningLangProApp> {
+  @override
+  void initState() {
+    super.initState();
+    LocalizationHelper.initDeviceLanguage();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

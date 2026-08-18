@@ -33,7 +33,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
   Map<String, dynamic>? _contrast;
   bool _isLoading = true;
   String? _error;
-  String _nativeLanguage = 'fa';
+  String _nativeLanguage = LocalizationHelper.currentLang;
   late TabController _tabController;
 
   static const Map<String, Color> _levelColors = {
@@ -321,7 +321,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           // Native Language Explanation
           if (explanation.isNotEmpty) ...[
             _SectionHeader(
-              title: _nativeLanguage == 'fa' ? 'توضیحات گرامر (به زبان مادری)' : 'Grammar Explanation',
+              title: LocalizationHelper.tr('grammar_explanation', lang: _nativeLanguage),
               icon: Icons.lightbulb_outline_rounded,
               color: _levelColor,
             ),
@@ -333,9 +333,7 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
           // Native Language Grammar Comparison & Examples
           if (comparison.isNotEmpty) ...[
             _SectionHeader(
-              title: _nativeLanguage == 'fa'
-                  ? 'تفاوت گرامر با زبان مادری'
-                  : 'Grammar Difference with Native Language',
+              title: LocalizationHelper.tr('grammar_comparison', lang: _nativeLanguage),
               icon: Icons.compare_arrows_rounded,
               color: AppTheme.primaryTeal,
             ),
