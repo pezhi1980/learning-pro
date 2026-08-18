@@ -257,50 +257,38 @@ class SupabaseService {
     final langUuid = await resolveLanguageId(languageId);
     final levelUuid = await resolveLevelId(levelId);
 
-    // 1. Try fetching by specific topic_id if provided
-    if (topicId != null && topicId.isNotEmpty) {
+    // 1. Try fetching randomized exercises by specific topic_id if provided
+    if (topicId != null && topicId.isNotEmpty && _uuidRegex.hasMatch(topicId)) {
       try {
-        var query = client
-            .from('exercises')
-            .select()
-            .eq('type', type)
-            .eq('is_approved', true);
-
-        if (_uuidRegex.hasMatch(topicId)) {
-          query = query.eq('topic_id', topicId);
-        }
-
-        final res = await query.limit(limit);
-        final list = List<Map<String, dynamic>>.from(res);
+        final res = await client.rpc('get_random_exercises', params: {
+          'p_topic_id': topicId,
+          'p_type': type,
+          'p_limit': limit,
+        });
+        final list = List<Map<String, dynamic>>.from(res as List);
         if (list.isNotEmpty) return list;
       } catch (_) {}
     }
 
-    // 2. Query by language_id and level_id directly from exercises table
+    // 2. Randomized fallback by language_id/level_id/type
     try {
-      final res = await client
-          .from('exercises')
-          .select()
-          .eq('language_id', langUuid)
-          .eq('level_id', levelUuid)
-          .eq('type', type)
-          .eq('is_approved', true)
-          .limit(limit);
-
-      final list = List<Map<String, dynamic>>.from(res);
+      final res = await client.rpc('get_random_exercises', params: {
+        'p_language_id': langUuid,
+        'p_level_id': levelUuid,
+        'p_type': type,
+        'p_limit': limit,
+      });
+      final list = List<Map<String, dynamic>>.from(res as List);
       if (list.isNotEmpty) return list;
     } catch (_) {}
 
-    // 3. Fallback: query without strict language/level UUID filter (by type and approval)
+    // 3. Last-resort randomized fallback: type + approval only
     try {
-      final res = await client
-          .from('exercises')
-          .select()
-          .eq('type', type)
-          .eq('is_approved', true)
-          .limit(limit);
-
-      return List<Map<String, dynamic>>.from(res);
+      final res = await client.rpc('get_random_exercises', params: {
+        'p_type': type,
+        'p_limit': limit,
+      });
+      return List<Map<String, dynamic>>.from(res as List);
     } catch (_) {
       return [];
     }

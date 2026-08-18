@@ -1,4 +1,4 @@
-// lib/features/exercises/screens/exam_screen.dart
+﻿// lib/features/exercises/screens/exam_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../core/utils/localization_helper.dart';
 
 class ExamScreen extends StatefulWidget {
   final String languageId;
@@ -71,7 +72,7 @@ class _ExamScreenState extends State<ExamScreen> {
           languageId: widget.languageId,
           levelId: widget.levelId,
           type: t,
-          nativeLanguage: 'fa',
+          nativeLanguage: await LocalizationHelper.getSelectedExplanationLanguage(),
           topicId: widget.topicId,
           limit: 2,
         );
@@ -213,7 +214,7 @@ class _ExamScreenState extends State<ExamScreen> {
             child: Text(widget.levelId, style: TextStyle(fontFamily: 'Outfit', fontSize: 12, fontWeight: FontWeight.w700, color: _levelColor)),
           ),
           const SizedBox(width: 8),
-          const Text('Comprehensive Exam 🎓', style: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.darkText)),
+          const Text('Comprehensive Exam ðŸŽ“', style: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.darkText)),
           const Spacer(),
           if (total > 0 && !isFinished)
             Text('${_currentIndex + 1}/$total', style: const TextStyle(fontFamily: 'Outfit', fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.darkTextSub)),
@@ -457,7 +458,7 @@ class _ExamScreenState extends State<ExamScreen> {
               child: Center(child: Icon(Icons.emoji_events_rounded, size: 48, color: _levelColor)),
             ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
             const SizedBox(height: 24),
-            const Text('Exam Complete! 🎓', style: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.darkText)),
+            const Text('Exam Complete! ðŸŽ“', style: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.darkText)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -487,3 +488,4 @@ class _ExamScreenState extends State<ExamScreen> {
     );
   }
 }
+

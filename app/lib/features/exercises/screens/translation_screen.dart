@@ -1,4 +1,4 @@
-// lib/features/exercises/screens/translation_screen.dart
+﻿// lib/features/exercises/screens/translation_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../core/utils/localization_helper.dart';
 
 class TranslationScreen extends StatefulWidget {
   final String languageId;
@@ -62,7 +63,7 @@ class _TranslationScreenState extends State<TranslationScreen> {
         languageId: widget.languageId,
         levelId: widget.levelId,
         type: 'translation',
-        nativeLanguage: 'fa',
+        nativeLanguage: await LocalizationHelper.getSelectedExplanationLanguage(),
         topicId: widget.topicId,
         limit: 5,
       );
@@ -166,7 +167,7 @@ class _TranslationScreenState extends State<TranslationScreen> {
             child: Text(widget.levelId, style: TextStyle(fontFamily: 'Outfit', fontSize: 12, fontWeight: FontWeight.w700, color: _levelColor)),
           ),
           const SizedBox(width: 8),
-          const Text('Translation 🌐', style: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.darkText)),
+          const Text('Translation ðŸŒ', style: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.darkText)),
           const Spacer(),
           if (_exercises.isNotEmpty)
             Text('${_currentIndex + 1}/${_exercises.length}', style: const TextStyle(fontFamily: 'Outfit', fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.darkTextSub)),
@@ -340,3 +341,4 @@ class _TranslationScreenState extends State<TranslationScreen> {
     );
   }
 }
+
