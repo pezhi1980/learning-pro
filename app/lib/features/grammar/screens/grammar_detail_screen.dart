@@ -664,60 +664,6 @@ class _GrammarDetailScreenState extends State<GrammarDetailScreen>
     );
   }
 
-  String _nativeLangFlag() {
-    const flags = {
-      'fa': '🇮🇷', 'da': '🇩🇰', 'en': '🇬🇧', 'ar': '🇸🇦',
-      'fr': '🇫🇷', 'de': '🇩🇪', 'it': '🇮🇹', 'es': '🇪🇸',
-    };
-    return flags[_nativeLanguage] ?? '🌐';
-  }
-
-  void _showLanguagePicker() {
-    final langs = [
-      {'code': 'fa', 'name': 'فارسی', 'flag': '🇮🇷'},
-      {'code': 'da', 'name': 'دانمارکی (Dansk)', 'flag': '🇩🇰'},
-      {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
-      {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
-    ];
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.darkCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Explanation Language',
-                style: TextStyle(fontFamily: 'Outfit', fontSize: 16,
-                    fontWeight: FontWeight.w600, color: AppTheme.darkText)),
-            const SizedBox(height: 16),
-            ...langs.map((l) => ListTile(
-              leading: Text(l['flag']!, style: const TextStyle(fontSize: 22)),
-              title: Text(l['name']!,
-                  style: const TextStyle(fontFamily: 'Outfit', color: AppTheme.darkText)),
-              trailing: _nativeLanguage == l['code']
-                  ? Icon(Icons.check_circle_rounded, color: _levelColor)
-                  : null,
-              onTap: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString(AppConstants.keyNativeLanguage, l['code']!);
-                if (mounted) {
-                  setState(() => _nativeLanguage = l['code']!);
-                  Navigator.pop(ctx);
-                  _loadContent();
-                }
-              },
-            )),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ── Reusable Widgets ───────────────────────────────────────
